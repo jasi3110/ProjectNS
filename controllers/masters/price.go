@@ -23,7 +23,7 @@ func (Prices *PriceController) PriceCreate(w http.ResponseWriter, r *http.Reques
 	repo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
 	status, descreption ,_:= repo.CreatePrices(&requst)
 	response := models.CommanRespones{
-		Statuscode:  200,
+		Statuscode:  http.StatusOK,
 		Status:      status,
 		Descreption: descreption,
 	}
