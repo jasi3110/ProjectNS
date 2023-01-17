@@ -6,7 +6,7 @@ type Product struct {
 	Category  string `json:"category"`
 	Quantity  string `json:"quantity"`
 	Unit      string `json:"unit"`
-	Price     string `json:"price"`
+	Price     int64  `json:"price"`
 	CreatedOn string `json:"createdon"`
 }
 type ProductAll struct {
@@ -15,7 +15,7 @@ type ProductAll struct {
 	Category  Category `json:"category"`
 	Quantity  string   `json:"quantity"`
 	Unit      Unit     `json:"unit"`
-	Price     string   `json:"price"`
+	Price     Price   `json:"price"`
 	CreatedOn string   `json:"createdon"`
 }
 type ProductResponses struct {

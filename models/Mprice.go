@@ -1,8 +1,23 @@
 package models
 
 type Price struct {
-	Id          string `json:"id"`
+	Id          int64 `json:"id"`
 	ProductId   int64 `json:"productid"`
-	ProductPrice string   `json:"productprice"`
+	ProductPrice int64   `json:"productprice"`
 	Createdon     string   `json:"createdon"`
+}
+
+
+type PriceResponses struct {
+	Statuscode  int64  `json:"statuscode"`
+	Status      bool   `json:"status"`
+	Value     Price  `json:"roledata"`
+	Descreption string `json:"desc"`
+}
+
+type GetAllPriceResponse struct {
+	Statuscode  int64  `json:"statuscode"`
+	Status      bool   `json:"status"`
+	Value       []Price `json:"roledata"`
+	Descreption string `json:"desc"`
 }

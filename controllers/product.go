@@ -84,27 +84,30 @@ func (Product *Product) ProductGetById(w http.ResponseWriter, r *http.Request) {
 	UnitStruct := models.Unit{
 		Id: Value.Unit,
 	}
-	// PriceStruct:= models.Price{
-	// 	Id: Value.Price,
-	// }
+	PriceStruct := models.Price{
+		Id: Value.Price,
+	}
 	categoryrepo := masterRepo.CategoryInterface(&masterRepo.CategoryStruct{})
 	unitrepo := masterRepo.UnitInterface(&masterRepo.UnitStruct{})
+	pricerepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
 
 	category, _, _ := categoryrepo.CategoryById(&categoryStruct)
 	unit, _, _ := unitrepo.UnityById(&UnitStruct)
-	value:= models.ProductAll{
+	price, _, _ := pricerepo.PriceById(&PriceStruct)
+
+	value := models.ProductAll{
 		Id:        Value.Id,
 		Name:      Value.Name,
 		Category:  category,
 		Quantity:  Value.Quantity,
 		Unit:      unit,
-		Price:     Value.Price,
+		Price:     price,
 		CreatedOn: Value.CreatedOn,
 	}
-	response:= models.ProductResponses{
+	response := models.ProductResponses{
 		Statuscode:  200,
 		Status:      status,
-		Value:     value,
+		Value:       value,
 		Descreption: descreption,
 	}
 	resp, err := json.Marshal(response)
@@ -115,13 +118,13 @@ func (Product *Product) ProductGetById(w http.ResponseWriter, r *http.Request) {
 }
 
 func (product *Product) ProductGetAll(w http.ResponseWriter, r *http.Request) {
-	
+
 	Repo := repos.ProductInterface(&repos.ProductStruct{})
-	value, status,descreption := Repo.ProductGetAll()
+	value, status, descreption := Repo.ProductGetAll()
 	response := models.GetAllProductResponse{
-		Statuscode: 200,
-		Status: status,
-		Value: value,
+		Statuscode:  200,
+		Status:      status,
+		Value:       value,
 		Descreption: descreption,
 	}
 	resp, err := json.Marshal(response)

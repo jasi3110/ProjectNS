@@ -42,12 +42,12 @@ func (product *ProductStruct) ProductCreate(obj *models.Product) (string, bool) 
 		fmt.Println("Error in Product Create QueryRow :", err)
 		return "Create Product Failed", false
 	}
-	priceRepo:=masterRepo.PriceInterface(&masterRepo.PriceStruct{})
-	pricesStruct:=models.Price{
-		ProductId: obj.Id,
-		ProductPrice:obj.Price,
+	priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
+	pricesStruct := models.Price{
+		ProductId:    obj.Id,
+		ProductPrice: obj.Price,
 	}
-	status,descreption,value:=priceRepo.CreatePrices(&pricesStruct)
+	status, descreption, value := priceRepo.CreatePrice(&pricesStruct)
 
 	if !status {
 		fmt.Println(descreption)
@@ -55,10 +55,10 @@ func (product *ProductStruct) ProductCreate(obj *models.Product) (string, bool) 
 	}
 	fmt.Println("not updated")
 	pricequery := `UPDATE "product" SET price=$2 WHERE id=$1`
-	a, err := Db.Exec(pricequery, &value.ProductId,&value.Id)
+	a, err := Db.Exec(pricequery, &value.ProductId, &value.Id)
 
 	if err != nil {
-		fmt.Println("Error in Price Update QueryRow :", a,err)
+		fmt.Println("Error in Price Update QueryRow :", a, err)
 		return "Update Failed", false
 	}
 	return "Product Created Sucessfully", true
@@ -69,12 +69,12 @@ func (product *ProductStruct) ProductUpdate(obj *models.Product) (string, bool) 
 	if !isconnceted {
 		fmt.Println("DB Disconnceted in Product Update")
 	}
-	priceRepo:=masterRepo.PriceInterface(&masterRepo.PriceStruct{})
-	pricesStruct:=models.Price{
-		ProductId: obj.Id,
-		ProductPrice:obj.Price,
+	priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
+	pricesStruct := models.Price{
+		ProductId:    obj.Id,
+		ProductPrice: obj.Price,
 	}
-	status,descreption,value:=priceRepo.CreatePrices(&pricesStruct)
+	status, descreption, value := priceRepo.CreatePrice(&pricesStruct)
 
 	if !status {
 		fmt.Println(descreption)
@@ -82,10 +82,10 @@ func (product *ProductStruct) ProductUpdate(obj *models.Product) (string, bool) 
 	}
 	fmt.Println("not updated")
 	pricequery := `UPDATE "product" SET price=$2,quantity=$3 WHERE id=$1`
-	a, err := Db.Exec(pricequery, &obj.Id,&value.Id,&obj.Quantity)
+	a, err := Db.Exec(pricequery, &obj.Id, &value.Id, &obj.Quantity)
 
 	if err != nil {
-		fmt.Println("Error in Price Update QueryRow :", a,err)
+		fmt.Println("Error in Price Update QueryRow :", a, err)
 		return "Update Failed", false
 	}
 
@@ -103,7 +103,7 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.Product, bool, 
 		fmt.Println("DB Disconnected in ProductGetBy ID")
 	}
 	productStruct := models.Product{}
-	query, _:= Db.Prepare(`SELECT id,name,category,quantity,unit,price,createdon from "product" where id=$1`)
+	query, _ := Db.Prepare(`SELECT id,name,category,quantity,unit,price,createdon from "product" where id=$1`)
 	err := query.QueryRow(obj).Scan(&productStruct.Id,
 		&productStruct.Name,
 		&productStruct.Category,
@@ -124,7 +124,7 @@ func (product *ProductStruct) ProductGetAll() ([]models.ProductAll, bool, string
 		fmt.Println("DB Disconnceted in Product GetAll ")
 	}
 	result := []models.ProductAll{}
-	productStruct:=models.Product{}
+	productStruct := models.Product{}
 
 	query, err := Db.Query(`SELECT id FROM "product"`)
 	if err != nil {
@@ -139,17 +139,24 @@ func (product *ProductStruct) ProductGetAll() ([]models.ProductAll, bool, string
 		UnitStruct := models.Unit{
 			Id: value.Unit,
 		}
-		categoryrepo := masterRepo.CategoryInterface(&masterRepo.CategoryStruct{})
-		repounit := masterRepo.UnitInterface(&masterRepo.UnitStruct{})
-		category, _, _ := categoryrepo.CategoryById(&categoryStruct)
-		unit, _, _ := repounit.UnityById(&UnitStruct)
+		pricestruct := models.Price{
+			ProductId:    value.Id,
+			ProductPrice: value.Price,
+		}
+		categoryRepo := masterRepo.CategoryInterface(&masterRepo.CategoryStruct{})
+		unitRepo := masterRepo.UnitInterface(&masterRepo.UnitStruct{})
+		priceRepo:=masterRepo.PriceInterface(&masterRepo.PriceStruct{})
+		category, _, _ := categoryRepo.CategoryById(&categoryStruct)
+		unit, _, _ := unitRepo.UnityById(&UnitStruct)
+		price,_,_:= priceRepo.PriceById(&pricestruct)
+
 
 		values := models.ProductAll{
 			Id:        value.Id,
 			Name:      value.Name,
 			Category:  category,
 			Quantity:  value.Quantity,
-			Price:     value.Price,
+			Price:     price,
 			Unit:      unit,
 			CreatedOn: value.CreatedOn,
 		}

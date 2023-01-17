@@ -7,15 +7,17 @@ import (
 )
 
 type PriceInterface interface {
-	CreatePrices(obj *models.Price) (bool, string, models.Price)
-	// RoleById(obj *models.Role) (models.Role, bool, string)
-	// RoleGetAll() ([]models.Role, bool, string)
-	// RoleUpdate(obj *models.Role) (string, bool)
+	CreatePrice(obj *models.Price) (bool, string, models.Price)
+	PriceById(obj *models.Price) (models.Price, bool, string)
+	PriceByDate(obj *models.Price) (models.Price, bool, string)
+	PriceGetAll() ([]models.Price, bool, string)
+	PriceUpdate(obj *models.Price) (string, bool)
+	PriceProductGetAll(obj *models.Price) ([]models.Price, bool, string)
 }
 type PriceStruct struct {
 }
 
-func (price *PriceStruct) CreatePrices(obj *models.Price) (bool, string, models.Price) {
+func (price *PriceStruct) CreatePrice(obj *models.Price) (bool, string, models.Price) {
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
 		fmt.Println("DB Disconnceted in Create price ")
@@ -25,71 +27,118 @@ func (price *PriceStruct) CreatePrices(obj *models.Price) (bool, string, models.
 		productid,
 		productprice,
 		createdon)values($1,$2,$3)RETURNING id `,
-	obj.ProductId,obj.ProductPrice,utls.GetCurrentDateTime(),).Scan(&obj.Id)
+	obj.ProductId,obj.ProductPrice,utls.GetCurrentDate(),).Scan(&obj.Id)
 	if err != nil {
-		fmt.Println("Error in Create prices QueryRow:", err)
-		return false, " Create price Failed ", *obj
+		fmt.Println("Error in Createprice QueryRow:", err)
+		return false, " Createprice Failed ", *obj
 	}
 	return true, "price  Sucessfully Created", *obj
 }
 
-// func (role *RoleStruct) RoleUpdate(obj *models.Role) (string, bool) {
-// 	myDb, isconncet := utls.OpenDbConnection()
-// 	if !isconncet {
-// 		fmt.Println("DB Disconnceted in Role Update")
-// 	}
+func (price *PriceStruct) PriceUpdate(obj *models.Price) (string, bool) {
+ Db, isconnceted := utls.OpenDbConnection()
+	if !isconnceted {
+		fmt.Println("DB Disconnceted in PriceUpdate")
+	}
 
-// 	query := `UPDATE "role" SET type=$2 WHERE id=$1`
-// 	_, err := myDb.Exec(query, &obj.Id, &obj.Type)
+	query := `UPDATE "price" SET productprice=$2,productid=$3 WHERE id=$1`
+	_, err := Db.Exec(query, &obj.Id, &obj.ProductPrice,&obj.ProductId)
 
-// 	if err != nil {
-// 		fmt.Println("Error in Role Update QueryRow :", err)
-// 		return "Update Failed", false
-// 	}
-// 	return "Sucessfully Updated", true
-// }
+	if err != nil {
+		fmt.Println("Error in PriceUpdate QueryRow :", err)
+		return "Price Update Failed", false
+	}
+	return "Sucessfully Updated", true
+}
 
-// func (role *RoleStruct) RoleById(obj *models.Role) (models.Role, bool, string) {
-// 	mydb, conncet := utls.OpenDbConnection()
-// 	if !conncet {
-// 		fmt.Println("DB Disconnceted in RoleById")
-// 	}
-// 	roleStruct := models.Role{}
+func (price *PriceStruct) PriceByDate(obj *models.Price) (models.Price, bool, string) {
+	Db, isconnceted := utls.OpenDbConnection()
+	if !isconnceted {
+		fmt.Println("DB Disconnceted in PriceByDate")
+	}
+	
 
-// 	query, _ := mydb.Prepare(`SELECT id,type from "role" where id=$1`)
+	query, _ := Db.Prepare(`SELECT id,productid,productprice from "role" where createdon=$1`)
 
-// 	err := query.QueryRow(obj.Id).Scan(&roleStruct.Id, &roleStruct.Type)
+	err := query.QueryRow(obj.Createdon).Scan(&obj.Id, &obj.ProductId,obj.ProductPrice)
 
-// 	if err != nil {
-// 		fmt.Println("Error in RoleById QueryRow :", err)
-// 		return roleStruct, false, "Role Get By ID failed"
-// 	}
-// 	return roleStruct, true, "Sucessfully Completed"
-// }
+	if err != nil {
+		fmt.Println("Error in PriceByDate QueryRow :", err)
+		return *obj, false, "PriceByDate failed"
+	}
+	return *obj, true, "Sucessfully Completed"
+}
 
-// func (role *RoleStruct) RoleGetAll() ([]models.Role, bool, string) {
-// 	Db, isConnected := utls.OpenDbConnection()
-// 	if !isConnected {
-// 		fmt.Println("DB Disconnceted in Role GetAll")
-// 	}
-// 	result := []models.Role{}
-// 	roleStruct := models.Role{}
+func (price *PriceStruct) PriceById(obj *models.Price) (models.Price, bool, string) {
+	Db, isconnceted := utls.OpenDbConnection()
+	if !isconnceted {
+		fmt.Println("DB Disconnceted in PriceById")
+	}
+	
 
-// 	res, err := Db.Query(`SELECT id,type FROM "role"`)
-// 	if err != nil {
-// 		fmt.Println("Error in Role GetAll Queryrow :", err)
-// 	}
+	query, _ := Db.Prepare(`SELECT productid,productprice,createdon from "role" where id=$1`)
 
-// 	for res.Next() {
-// 		err := res.Scan(
-// 			&roleStruct.Id,
-// 			&roleStruct.Type,
-// 		)
-// 		if err != nil {
-// 			fmt.Println("Error is founded :", err)
-// 			return result, false, "failed to  Get All Role Data"
-// 		}
-// 		result = append(result, roleStruct)
-// 	}
-// 	return result, true, "sucessfully Completed"
-// }
+	err := query.QueryRow(obj.Id).Scan(&obj.ProductId,obj.ProductPrice,obj.Createdon)
+
+	if err != nil {
+		fmt.Println("Error in PriceById QueryRow :", err)
+		return *obj, false, "PriceById failed"
+	}
+	return *obj, true, "Sucessfully Completed"
+}
+
+func (price *PriceStruct) PriceGetAll() ([]models.Price, bool, string) {
+	Db, isConnected := utls.OpenDbConnection()
+	if !isConnected {
+		fmt.Println("DB Disconnceted in Price GetAll")
+	}
+	result := []models.Price{}
+	priceStruct := models.Price{}
+
+	query, err := Db.Query(`SELECT id,productid,productprice,createdon FROM "price" WHERE productid=$1`)
+	if err != nil {
+		fmt.Println("Error in Price GetAll Queryrow :", err)
+	}
+
+	for query.Next() {
+		err := query.Scan(
+			&priceStruct.Id,
+			&priceStruct.ProductId,
+			&priceStruct.ProductPrice,
+		)
+		if err != nil {
+			fmt.Println("Error is founded :", err)
+			return result, false, "failed to  Get All Price Data"
+		}
+		result = append(result, priceStruct)
+	}
+	return result, true, "sucessfully Completed"
+}
+
+func (price *PriceStruct) PriceProductGetAll(obj *models.Price) ([]models.Price, bool, string) {
+	Db, isConnected := utls.OpenDbConnection()
+	if !isConnected {
+		fmt.Println("DB Disconnceted in Price GetAll")
+	}
+	result := []models.Price{}
+	priceStruct := models.Price{}
+
+	query, err := Db.Query(`SELECT id,productid,productprice,createdon FROM "price" WHERE productid=$1`,obj.ProductId)
+	if err != nil {
+		fmt.Println("Error in Price GetAll Queryrow :", err)
+	}
+
+	for query.Next() {
+		err := query.Scan(
+			&priceStruct.Id,
+			&priceStruct.ProductId,
+			&priceStruct.ProductPrice,
+		)
+		if err != nil {
+			fmt.Println("Error is founded :", err)
+			return result, false, "failed to  Get All Price Data"
+		}
+		result = append(result, priceStruct)
+	}
+	return result, true, "sucessfully Completed"
+}
