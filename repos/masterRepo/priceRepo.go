@@ -58,9 +58,9 @@ func (price *PriceStruct) PriceByDate(obj *models.Price) (models.Price, bool, st
 	}
 	
 
-	query, _ := Db.Prepare(`SELECT id,productid,productprice from "role" where createdon=$1`)
+	query, _ := Db.Prepare(`SELECT id,productprice from "price" where createdon=$1 AND productid=$2`)
 
-	err := query.QueryRow(obj.Createdon).Scan(&obj.Id, &obj.ProductId,obj.ProductPrice)
+	err := query.QueryRow(obj.ProductId, obj.Createdon).Scan(&obj.Id, &obj.ProductId,obj.ProductPrice)
 
 	if err != nil {
 		fmt.Println("Error in PriceByDate QueryRow :", err)

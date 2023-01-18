@@ -85,21 +85,13 @@ func (price *PriceController) PriceGetById(w http.ResponseWriter, r *http.Reques
 }
 
 func (price *PriceController) PriceGetByDate(w http.ResponseWriter, r *http.Request) {
-	request := mux.Vars(r)
-	productid, err := strconv.ParseInt(request["productid"], 10, 64) 
-	pricedate := strconv.FormatInt(productid, 10)
-	
+	request := models.Price{}
+	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		fmt.Println("Error in Decoding PriceGetById Request :", err)
-	}
-	priceStruct := models.Price{
-		Createdon: pricedate,
-	}
-	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error in Decoding PriceGetbyDate Request :", err)
 	}
 	repo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
-	value, status, descreption := repo.PriceById(&priceStruct)
+	value, status, descreption := repo.PriceById(&request)
 	response := models.PriceResponses{
 		Statuscode:  200,
 		Status:      status,
@@ -113,20 +105,40 @@ func (price *PriceController) PriceGetByDate(w http.ResponseWriter, r *http.Requ
 	w.Write(respone)
 }
 
+func (price *PriceController) PriceGetAll(w http.ResponseWriter, r *http.Request) {
 
-// func (role *RoleController) RoleGetAll(w http.ResponseWriter, r *http.Request) {
+	repo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
+	value, status, descreption := repo.PriceGetAll()
+	response := models.GetAllPriceResponse{
+		Statuscode:  200,
+		Status:   status,
+		Value:       value,
+		Descreption: descreption,
+	}
+	respone, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println("Error in Marshal RoleGetAll Response :", err)
+	}
+	w.Write(respone)
+}
 
-// 	repo := masterrepo.RoleInterface(&masterrepo.RoleStruct{})
-// 	value, status, descreption := repo.RoleGetAll()
-// 	response := models.GetAllRoleResponse{
-// 		Statuscode:  200,
-// 		Status:   Prices status,
-// 		Value:       value,
-// 		Descreption: descreption,
-// 	}
-// 	respone, err := json.Marshal(response)
-// 	if err != nil {
-// 		fmt.Println("Error in Marshal RoleGetAll Response :", err)
-// 	}
-// 	w.Write(respone)
-// }
+func (price *PriceController) PriceProductGetAll(w http.ResponseWriter, r *http.Request) {
+	request := models.Price{}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		fmt.Println("Error in Decoding PriceProductGetAll Request :", err)
+	}
+	repo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
+	value, status, descreption := repo.PriceProductGetAll(&request)
+	response := models.GetAllPriceResponse{
+		Statuscode:  200,
+		Status:      status,
+		Value:       value,
+		Descreption: descreption,
+	}
+	respone, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println("Error in Marshal PriceProductGetAll Response :", err)
+	}
+	w.Write(respone)
+}
