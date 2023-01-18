@@ -23,11 +23,11 @@ func (price *PriceStruct) CreatePrice(obj *models.Price) (bool, string, models.P
 		fmt.Println("DB Disconnceted in Create price ")
 	}
 
-	err:= Db.QueryRow(`INSERT INTO "price" (
+	err := Db.QueryRow(`INSERT INTO "price" (
 		productid,
 		productprice,
 		createdon)values($1,$2,$3)RETURNING id `,
-	obj.ProductId,obj.ProductPrice,utls.GetCurrentDate(),).Scan(&obj.Id)
+		obj.ProductId, obj.ProductPrice, utls.GetCurrentDate()).Scan(&obj.Id)
 	if err != nil {
 		fmt.Println("Error in Createprice QueryRow:", err)
 		return false, " Createprice Failed ", *obj
@@ -36,13 +36,13 @@ func (price *PriceStruct) CreatePrice(obj *models.Price) (bool, string, models.P
 }
 
 func (price *PriceStruct) PriceUpdate(obj *models.Price) (string, bool) {
- Db, isconnceted := utls.OpenDbConnection()
+	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
 		fmt.Println("DB Disconnceted in PriceUpdate")
 	}
 
 	query := `UPDATE "price" SET productprice=$2,productid=$3 WHERE id=$1`
-	_, err := Db.Exec(query, &obj.Id, &obj.ProductPrice,&obj.ProductId)
+	_, err := Db.Exec(query, &obj.Id, &obj.ProductPrice, &obj.ProductId)
 
 	if err != nil {
 		fmt.Println("Error in PriceUpdate QueryRow :", err)
@@ -56,17 +56,20 @@ func (price *PriceStruct) PriceByDate(obj *models.Price) (models.Price, bool, st
 	if !isconnceted {
 		fmt.Println("DB Disconnceted in PriceByDate")
 	}
-	
 
-	query, _ := Db.Prepare(`SELECT id,productprice from "price" where createdon=$1 AND productid=$2`)
-
-	err := query.QueryRow(obj.ProductId, obj.Createdon).Scan(&obj.Id, &obj.ProductId,obj.ProductPrice)
+	query, _ := Db.Prepare(`SELECT id,productid,productprice,createdon from "price" where productid=$1 and createdon=$2`)
+	priceStruct := models.Price{}
+	err := query.QueryRow(obj.ProductId, obj.Createdon).Scan(
+		&priceStruct.Id,
+		&priceStruct.ProductId,
+		&priceStruct.ProductPrice,
+		&priceStruct.Createdon)
 
 	if err != nil {
 		fmt.Println("Error in PriceByDate QueryRow :", err)
-		return *obj, false, "PriceByDate failed"
+		return priceStruct, false, "PriceByDate failed"
 	}
-	return *obj, true, "Sucessfully Completed"
+	return priceStruct, true, "Sucessfully Completed"
 }
 
 func (price *PriceStruct) PriceById(obj *models.Price) (models.Price, bool, string) {
@@ -74,12 +77,11 @@ func (price *PriceStruct) PriceById(obj *models.Price) (models.Price, bool, stri
 	if !isconnceted {
 		fmt.Println("DB Disconnceted in PriceById")
 	}
-	priceStruct:=models.Price{
-	}
+	priceStruct := models.Price{}
 
 	query, _ := Db.Prepare(`SELECT id,productid,productprice,createdon from "price" where id=$1`)
 
-	err := query.QueryRow(obj.Id).Scan(&priceStruct.Id,&priceStruct.ProductId,&priceStruct.ProductPrice,&priceStruct.Createdon)
+	err := query.QueryRow(obj.Id).Scan(&priceStruct.Id, &priceStruct.ProductId, &priceStruct.ProductPrice, &priceStruct.Createdon)
 
 	if err != nil {
 		fmt.Println("Error in PriceById QueryRow :", err)
@@ -96,7 +98,7 @@ func (price *PriceStruct) PriceGetAll() ([]models.Price, bool, string) {
 	result := []models.Price{}
 	priceStruct := models.Price{}
 
-	query, err := Db.Query(`SELECT id,productid,productprice,createdon FROM "price" WHERE productid=$1`)
+	query, err := Db.Query(`SELECT id,productid,productprice,createdon FROM "price"`)
 	if err != nil {
 		fmt.Println("Error in Price GetAll Queryrow :", err)
 	}
@@ -106,6 +108,7 @@ func (price *PriceStruct) PriceGetAll() ([]models.Price, bool, string) {
 			&priceStruct.Id,
 			&priceStruct.ProductId,
 			&priceStruct.ProductPrice,
+			&priceStruct.Createdon,
 		)
 		if err != nil {
 			fmt.Println("Error is founded :", err)
@@ -124,7 +127,7 @@ func (price *PriceStruct) PriceProductGetAll(obj *models.Price) ([]models.Price,
 	result := []models.Price{}
 	priceStruct := models.Price{}
 
-	query, err := Db.Query(`SELECT id,productid,productprice,createdon FROM "price" WHERE productid=$1`,obj.ProductId)
+	query, err := Db.Query(`SELECT id,productid,productprice,createdon FROM "price" WHERE productid=$1`, obj.ProductId)
 	if err != nil {
 		fmt.Println("Error in Price GetAll Queryrow :", err)
 	}
@@ -134,6 +137,7 @@ func (price *PriceStruct) PriceProductGetAll(obj *models.Price) ([]models.Price,
 			&priceStruct.Id,
 			&priceStruct.ProductId,
 			&priceStruct.ProductPrice,
+			&priceStruct.Createdon,
 		)
 		if err != nil {
 			fmt.Println("Error is founded :", err)

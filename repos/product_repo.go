@@ -103,8 +103,8 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.Product, bool, 
 		fmt.Println("DB Disconnected in ProductGetBy ID")
 	}
 	productStruct := models.Product{}
-	query, _ := Db.Prepare(`SELECT name,category,quantity,unit,price,createdon from "product" where id=$1`)
-	err := query.QueryRow(obj).Scan(
+	query, _ := Db.Prepare(`SELECT id,name,category,quantity,unit,price,createdon from "product" where id=$1`)
+	err := query.QueryRow(obj).Scan(&productStruct.Id,
 		&productStruct.Name,
 		&productStruct.Category,
 		&productStruct.Quantity,

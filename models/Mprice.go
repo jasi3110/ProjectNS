@@ -11,13 +11,13 @@ type Price struct {
 type PriceResponses struct {
 	Statuscode  int64  `json:"statuscode"`
 	Status      bool   `json:"status"`
-	Value     Price  `json:"roledata"`
+	Value     Price  `json:"pricedata"`
 	Descreption string `json:"desc"`
 }
 
 type GetAllPriceResponse struct {
 	Statuscode  int64  `json:"statuscode"`
 	Status      bool   `json:"status"`
-	Value       []Price `json:"roledata"`
+	Value       []Price `json:"pricedata"`
 	Descreption string `json:"desc"`
 }

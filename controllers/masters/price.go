@@ -21,17 +21,17 @@ func (Price *PriceController) PriceCreate(w http.ResponseWriter, r *http.Request
 	err := json.NewDecoder(r.Body).Decode(&requst)
 	if err != nil {
 		fmt.Println("Error in Decoding RoleCreate Request :", err)
-	}
+	} 
 	repo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
-	status, descreption ,_:= repo.CreatePrice(&requst)
+	status, descreption ,value:= repo.CreatePrice(&requst)
 	response := models.CommanRespones{
-		Statuscode:  http.StatusOK,
+		Statuscode:  200,
 		Status:      status,
 		Descreption: descreption,
 	}
 	resp, err := json.Marshal(response)
 	if err != nil {
-		fmt.Println("Error in Marshal RoleCreate Response :", err)
+		fmt.Println("Error in Marshal RoleCreate Response :", err,value)
 	}
 	w.Write(resp)
 }
@@ -91,7 +91,7 @@ func (price *PriceController) PriceGetByDate(w http.ResponseWriter, r *http.Requ
 		fmt.Println("Error in Decoding PriceGetbyDate Request :", err)
 	}
 	repo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
-	value, status, descreption := repo.PriceById(&request)
+	value, status, descreption := repo.PriceByDate(&request)
 	response := models.PriceResponses{
 		Statuscode:  200,
 		Status:      status,
