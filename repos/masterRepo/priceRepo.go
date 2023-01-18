@@ -74,17 +74,18 @@ func (price *PriceStruct) PriceById(obj *models.Price) (models.Price, bool, stri
 	if !isconnceted {
 		fmt.Println("DB Disconnceted in PriceById")
 	}
-	
+	priceStruct:=models.Price{
+	}
 
-	query, _ := Db.Prepare(`SELECT productid,productprice,createdon from "role" where id=$1`)
+	query, _ := Db.Prepare(`SELECT id,productid,productprice,createdon from "price" where id=$1`)
 
-	err := query.QueryRow(obj.Id).Scan(&obj.ProductId,obj.ProductPrice,obj.Createdon)
+	err := query.QueryRow(obj.Id).Scan(&priceStruct.Id,&priceStruct.ProductId,&priceStruct.ProductPrice,&priceStruct.Createdon)
 
 	if err != nil {
 		fmt.Println("Error in PriceById QueryRow :", err)
-		return *obj, false, "PriceById failed"
+		return priceStruct, false, "PriceById failed"
 	}
-	return *obj, true, "Sucessfully Completed"
+	return priceStruct, true, "Sucessfully Completed"
 }
 
 func (price *PriceStruct) PriceGetAll() ([]models.Price, bool, string) {

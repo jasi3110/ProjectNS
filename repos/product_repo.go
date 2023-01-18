@@ -35,8 +35,8 @@ func (product *ProductStruct) ProductCreate(obj *models.Product) (string, bool) 
 		obj.Category,
 		obj.Quantity,
 		obj.Unit,
-		"",
-		utls.GetCurrentDateTime()).Scan(&obj.Id)
+		0,
+		utls.GetCurrentDate()).Scan(&obj.Id)
 
 	if err != nil {
 		fmt.Println("Error in Product Create QueryRow :", err)
@@ -103,8 +103,8 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.Product, bool, 
 		fmt.Println("DB Disconnected in ProductGetBy ID")
 	}
 	productStruct := models.Product{}
-	query, _ := Db.Prepare(`SELECT id,name,category,quantity,unit,price,createdon from "product" where id=$1`)
-	err := query.QueryRow(obj).Scan(&productStruct.Id,
+	query, _ := Db.Prepare(`SELECT name,category,quantity,unit,price,createdon from "product" where id=$1`)
+	err := query.QueryRow(obj).Scan(
 		&productStruct.Name,
 		&productStruct.Category,
 		&productStruct.Quantity,
@@ -140,16 +140,14 @@ func (product *ProductStruct) ProductGetAll() ([]models.ProductAll, bool, string
 			Id: value.Unit,
 		}
 		pricestruct := models.Price{
-			ProductId:    value.Id,
-			ProductPrice: value.Price,
+			Id: value.Price,
 		}
 		categoryRepo := masterRepo.CategoryInterface(&masterRepo.CategoryStruct{})
 		unitRepo := masterRepo.UnitInterface(&masterRepo.UnitStruct{})
-		priceRepo:=masterRepo.PriceInterface(&masterRepo.PriceStruct{})
+		priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
 		category, _, _ := categoryRepo.CategoryById(&categoryStruct)
 		unit, _, _ := unitRepo.UnityById(&UnitStruct)
-		price,_,_:= priceRepo.PriceById(&pricestruct)
-
+		price, _, _ := priceRepo.PriceById(&pricestruct)
 
 		values := models.ProductAll{
 			Id:        value.Id,

@@ -9,5 +9,6 @@ func InitRoutes() *mux.Router {
 	route = CategoryRoutes(route)
 	route = UnitRoutes(route)
 	route = RoleRoutes(route)
+	route = PricesRoutes(route)
 	return route
 }

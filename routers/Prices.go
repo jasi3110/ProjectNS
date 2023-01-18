@@ -12,7 +12,7 @@ import (
 func PricesRoutes(Router *mux.Router) *mux.Router {
 	priceController := masters.PriceController{}
 
-	Router.Handle("/prices/create", utls.Authorize(controllers.CheckAuthenticLogin(http.HandlerFunc(priceController.PriceCreate)))).Methods(http.MethodPost)
+	Router.Handle("/price/create", utls.Authorize(controllers.CheckAuthenticLogin(http.HandlerFunc(priceController.PriceCreate)))).Methods(http.MethodPost)
 	Router.Handle("/price/getbyid/{id}", http.HandlerFunc(priceController.PriceGetById)).Methods(http.MethodGet)
 	Router.Handle("/Price/getbydate", http.HandlerFunc(priceController.PriceGetByDate)).Methods(http.MethodPost)
 	Router.Handle("/Price/priceproductgetall", http.HandlerFunc(priceController.PriceProductGetAll)).Methods(http.MethodPost)
