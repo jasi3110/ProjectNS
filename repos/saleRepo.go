@@ -4,16 +4,18 @@ import (
 	"OnlineShop/models"
 	"OnlineShop/utls"
 	"fmt"
+
+	// "github.com/spf13/pflag"
 )
 
 type SaleInterface interface {
-	CreateSale(Obj models.Invoice) bool
+	CreateSale(Obj models.Invoice) (bool,string)
 }
 
 type SaleStruct struct {
 }
 
-func (sale *SaleStruct) CreateSale(obj models.Invoice) bool {
+func (sale *SaleStruct) CreateSale(obj models.Invoice) (bool,string) {
 
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
@@ -22,8 +24,8 @@ func (sale *SaleStruct) CreateSale(obj models.Invoice) bool {
 	//create transaction
 	Txn, err := Db.Begin()
 	if err != nil {
-		fmt.Println("Error in Create Transacation in DB :", err)
-		return false
+		fmt.Println("Error in CreateSale Transacation in DB :", err)
+		return false,"CREATESALE FAILED"
 	}
 
 	//write invoice
@@ -45,20 +47,24 @@ func (sale *SaleStruct) CreateSale(obj models.Invoice) bool {
 		if err != nil {
 			fmt.Println("Error in CreateSale Rollback in Invoice :", err)
 		}
-		return false
+		return false,"CREATESALE FAILED"
 	}
 	//write sales entry data from array
 	for _, productItem := range obj.Items {
 
-		err := Txn.QueryRow(`INSERT into "salesentry"(pid,
-												productprice,
+		err := Txn.QueryRow(`INSERT into "salesEntry"(customerid,
 												billid,
+												invoiceid,
+			     								productid,
+												productprice,
 												quantity,
 												createdon)
-												values($1,$2,$3,$4,$5)RETURNING id`,
+												values($1,$2,$3,$4,$5,$6,$7)RETURNING id`,
+			obj.CustomerId,
+			2121222,
+			obj.Id,
 			productItem.Id,
 			productItem.Price,
-			2121222,
 			productItem.Quantity,
 			obj.CreatedOn,
 		).Scan(&productItem.Id)
@@ -66,9 +72,9 @@ func (sale *SaleStruct) CreateSale(obj models.Invoice) bool {
 			fmt.Println("Error in CreateSale Saleentry QueryRow :", err)
 			err := Txn.Rollback()
 			if err != nil {
-				fmt.Println("Error in CreateSale Rollback in SaleEntry :",err)
+				fmt.Println("Error in CreateSale Rollback in SaleEntry :", err)
 			}
-			return false
+			return false,"CREATESALE FAILED"
 		}
 
 		productRepo := ProductInterface(&ProductStruct{})
@@ -80,12 +86,12 @@ func (sale *SaleStruct) CreateSale(obj models.Invoice) bool {
 			updateQueryqty, err := Txn.Query(`UPDATE  "product" SET  quantity=$1 WHERE id=$2`, productqty, productItem.Id)
 
 			if err != nil {
-				fmt.Println("Error in CreateSale  in Product Update QueryRow  :",err)
+				fmt.Println("Error in CreateSale  in Product Update QueryRow  :", err)
 				err := Txn.Rollback()
 				if err != nil {
-					fmt.Println("Error in CreateSale Rollback in Product Update QueryRow :",err)
+					fmt.Println("Error in CreateSale Rollback in Product Update QueryRow :", err)
 				}
-				return false
+				return false,"CREATESALE FAILED"
 			}
 			err = updateQueryqty.Close()
 			if err != nil {
@@ -100,9 +106,10 @@ func (sale *SaleStruct) CreateSale(obj models.Invoice) bool {
 			if err != nil {
 				fmt.Println("Error in CreateSale Rollback in Product Update :")
 			}
-			return false
+			return false,"CREATESALE FAILED"
 		}
 	}
-	return true
+	fmt.Println(err)
+	return true,"CREATESALE SUCESSFULLY COMPLETED"
 
 }

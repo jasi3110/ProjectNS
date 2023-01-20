@@ -3,11 +3,9 @@ package models
 type Invoice struct {
 	Id         int64     `json:"id"`
 	Items      []Product `json:"product"`
-	BillAmount string    `json:"billamount"`
+	BillAmount int64     `json:"billamount"`
 	TrxId      int64     `json:"trxid,string"`
-	CustomerId string    `json:"customerid"`
+	CustomerId int64     `json:"customerid"`
 	CreatedOn  string    `json:"createdon"`
 	CreatedBy  int64     `json:"createdby"`
 }
-
-

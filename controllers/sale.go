@@ -20,11 +20,11 @@ func (sale *SaleController) SaleEntry(w http.ResponseWriter, r *http.Request) {
 	}
 
 Repo:=repos.SaleInterface(&repos.SaleStruct{})
-status:=Repo.CreateSale(request)
+status,descreption:=Repo.CreateSale(request)
 response:=models.CommanRespones{
 	Statuscode:  http.StatusAccepted,
 	Status:      status,
-	Descreption: "",
+	Descreption:descreption,
 }
 
 resp,err:=json.Marshal(response)
