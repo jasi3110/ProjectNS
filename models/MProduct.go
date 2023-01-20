@@ -4,7 +4,7 @@ type Product struct {
 	Id        int64  `json:"id"`
 	Name      string `json:"name"`
 	Category  string `json:"category"`
-	Quantity  string `json:"quantity"`
+	Quantity  int64  `json:"quantity"`
 	Unit      string `json:"unit"`
 	Price     int64  `json:"price"`
 	CreatedOn string `json:"createdon"`
@@ -13,9 +13,9 @@ type ProductAll struct {
 	Id        int64    `json:"id"`
 	Name      string   `json:"name"`
 	Category  Category `json:"category"`
-	Quantity  string   `json:"quantity"`
+	Quantity  int64    `json:"quantity"`
 	Unit      Unit     `json:"unit"`
-	Price     Price   `json:"price"`
+	Price     Price    `json:"price"`
 	CreatedOn string   `json:"createdon"`
 }
 type ProductResponses struct {

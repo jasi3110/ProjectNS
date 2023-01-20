@@ -1,6 +1,9 @@
 package models
 
 import (
+	// "OnlineShop/utls"
+	// "fmt"
+	// "strconv"
 	"strings"
 	"unicode"
 )
@@ -38,3 +41,31 @@ func VerifyPassword(s string) bool {
 }
 
 
+// func GenerateTrxNumber(userID string)int64{
+// // date:=utls.GetCurrentDate()
+
+// 	 trxnum:=""
+// 	if len(userID)==1{
+// 		trxnum="00000"+userID
+// 	}else if len(userID) == 2 {
+// 		trxnum="0000"+userID
+// 	}else if len(userID) == 3 {
+// 		trxnum="000"+userID
+// 	}else if len(userID) == 4 {
+// 		trxnum="00"+userID
+// 	}else {
+// 		trxnum="0"+userID
+// 	}
+// 	// i, err := strconv.Atoi(trxnum)
+// 	// if err !=nil {
+// 		// fmt.Println("Error in Genrating ",date)
+// 	// }
+// 	// return int64(i)
+
+
+// }
+
+// func main(){
+// 	// date :=utls.GetCurrentDate()
+// // fmt.Println("",date)
+// }
