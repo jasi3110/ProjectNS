@@ -3,12 +3,15 @@ package controllers
 import (
 	"OnlineShop/models"
 	"OnlineShop/repos"
-	"OnlineShop/repos/masterRepo"
+	// "OnlineShop/repos/masterRepo"
+
+	// "OnlineShop/repos/masterRepo"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+
 	"github.com/gorilla/mux"
 )
 
@@ -76,33 +79,8 @@ func (Product *Product) ProductGetById(w http.ResponseWriter, r *http.Request) {
 	}
 	repo := repos.ProductInterface(&repos.ProductStruct{})
 
-	Value, status, descreption := repo.GetProductById(&id)
-	categoryStruct := models.Category{
-		Id: Value.Category,
-	}
-	UnitStruct := models.Unit{
-		Id: Value.Unit,
-	}
-	PriceStruct := models.Price{
-		Id: Value.Price,
-	}
-	categoryrepo := masterRepo.CategoryInterface(&masterRepo.CategoryStruct{})
-	unitrepo := masterRepo.UnitInterface(&masterRepo.UnitStruct{})
-	pricerepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
-
-	category, _, _ := categoryrepo.CategoryById(&categoryStruct)
-	unit, _, _ := unitrepo.UnityById(&UnitStruct)
-	price, _, _ := pricerepo.PriceById(&PriceStruct)
-
-	value := models.ProductAll{
-		Id:        Value.Id,
-		Name:      Value.Name,
-		Category:  category,
-		Quantity:  Value.Quantity,
-		Unit:      unit,
-		Price:     price,
-		CreatedOn: Value.CreatedOn,
-	}
+	value, status, descreption := repo.GetProductById(&id)
+	
 	response := models.ProductResponses{
 		Statuscode:  200,
 		Status:      status,

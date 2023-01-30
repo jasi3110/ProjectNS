@@ -4,8 +4,10 @@ import (
 	// "OnlineShop/utls"
 	// "fmt"
 	// "strconv"
+	// "fmt"
 	"strings"
 	"unicode"
+
 )
 
 type CommanRespones struct {
@@ -41,31 +43,20 @@ func VerifyPassword(s string) bool {
 }
 
 
-// func GenerateTrxNumber(userID string)int64{
+// func GenerateTrxNumber()int64{
 // // date:=utls.GetCurrentDate()
 
-// 	 trxnum:=""
-// 	if len(userID)==1{
-// 		trxnum="00000"+userID
-// 	}else if len(userID) == 2 {
-// 		trxnum="0000"+userID
-// 	}else if len(userID) == 3 {
-// 		trxnum="000"+userID
-// 	}else if len(userID) == 4 {
-// 		trxnum="00"+userID
-// 	}else {
-// 		trxnum="0"+userID
+// 	 *trxnum:=1000 +1
+// 	 sum:=trxnum
+// 	 trxnum=&sum
+// 	return int64(sum)
 // 	}
-// 	// i, err := strconv.Atoi(trxnum)
-// 	// if err !=nil {
-// 		// fmt.Println("Error in Genrating ",date)
-// 	// }
-// 	// return int64(i)
 
 
-// }
 
 // func main(){
 // 	// date :=utls.GetCurrentDate()
-// // fmt.Println("",date)
+
+// fmt.Println("",GenerateTrxNumber())
+// fmt.Println("",GenerateTrxNumber())
 // }

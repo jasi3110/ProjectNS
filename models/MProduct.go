@@ -21,14 +21,14 @@ type ProductAll struct {
 type ProductResponses struct {
 	Statuscode  int64      `json:"statuscode"`
 	Status      bool       `json:"result"`
-	Value       ProductAll `json:"data"`
+	Value       Product `json:"data"`
 	Descreption string     `json:"desc"`
 }
 
 type GetAllProductResponse struct {
 	Statuscode  int64        `json:"statuscode"`
 	Status      bool         `json:"result"`
-	Value       []ProductAll `json:"data"`
+	Value       []Product `json:"data"`
 	Descreption string       `json:"desc"`
 }
 

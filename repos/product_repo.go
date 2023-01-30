@@ -12,7 +12,7 @@ type ProductInterface interface {
 	ProductCreate(obj *models.Product) (string, bool)
 	GetProductById(obj *int64) (models.Product, bool, string)
 	ProductUpdate(obj *models.Product) (string, bool)
-	ProductGetAll() ([]models.ProductAll, bool, string)
+	ProductGetAll() ([]models.Product, bool, string)
 }
 type ProductStruct struct {
 }
@@ -35,7 +35,7 @@ func (product *ProductStruct) ProductCreate(obj *models.Product) (string, bool) 
 		obj.Category,
 		obj.Quantity,
 		obj.Unit,
-		0,
+		obj.Price,
 		utls.GetCurrentDate()).Scan(&obj.Id)
 
 	if err != nil {
@@ -103,7 +103,13 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.Product, bool, 
 		fmt.Println("DB Disconnected in ProductGetBy ID")
 	}
 	productStruct := models.Product{}
-	query, _ := Db.Prepare(`SELECT id,name,category,quantity,unit,price,createdon from "product" where id=$1`)
+	query, _ := Db.Prepare(`SELECT id,
+								   name,
+								   coalesce(select name from category where id = category)as category,
+								   quantity,
+								   unit,
+								   price,
+								   createdon from "product" where id=$1`)
 	err := query.QueryRow(obj).Scan(&productStruct.Id,
 		&productStruct.Name,
 		&productStruct.Category,
@@ -115,15 +121,44 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.Product, bool, 
 		fmt.Println("Error in Product GetById QueryRow :", err)
 		return productStruct, false, "Failed"
 	}
+	// categoryrepo := masterRepo.CategoryInterface(&masterRepo.CategoryStruct{})
+	// unitrepo := masterRepo.UnitInterface(&masterRepo.UnitStruct{})
+	// pricerepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
+
+	// category, statuscat, descreptioncat := categoryrepo.CategoryById(&productStruct.Category)
+	// unit, statusunit, descreptionunit := unitrepo.UnityById(&productStruct.Unit)
+	// price, statusprice, descreptionprice := pricerepo.PriceById(&productStruct.Price)
+	// if !statuscat {
+	// 	fmt.Println(descreptioncat)
+	// 	return productStruct, false, descreptioncat
+	// }
+	// if !statusunit {
+	// 	fmt.Println(descreptionunit)
+	// 	return productStruct, false, descreptionunit
+	// }
+	// if !statusprice {
+	// 	fmt.Println(descreptionunit)
+	// 	return productStruct, false, descreptionprice
+
+	// }
+	// result := models.ProductAll{
+	// 	Id:        productStruct.Id,
+	// 	Name:      productStruct.Name,
+	// 	Category:  category,
+	// 	Quantity:  productStruct.Quantity,
+	// 	Unit:      unit,
+	// 	Price:     price,
+	// 	CreatedOn: productStruct.CreatedOn,
+	// }
 	return productStruct, true, "Get Product Sucessfully Completed"
 }
 
-func (product *ProductStruct) ProductGetAll() ([]models.ProductAll, bool, string) {
+func (product *ProductStruct) ProductGetAll() ([]models.Product, bool, string) {
 	Db, isConnected := utls.OpenDbConnection()
 	if !isConnected {
 		fmt.Println("DB Disconnceted in Product GetAll ")
 	}
-	result := []models.ProductAll{}
+	result := []models.Product{}
 	productStruct := models.Product{}
 
 	query, err := Db.Query(`SELECT id FROM "product"`)
@@ -132,37 +167,17 @@ func (product *ProductStruct) ProductGetAll() ([]models.ProductAll, bool, string
 	}
 	for query.Next() {
 		err := query.Scan(&productStruct.Id)
-		value, _, _ := product.GetProductById(&productStruct.Id)
-		categoryStruct := models.Category{
-			Id: value.Category,
-		}
-		UnitStruct := models.Unit{
-			Id: value.Unit,
-		}
-		pricestruct := models.Price{
-			Id: value.Price,
-		}
-		categoryRepo := masterRepo.CategoryInterface(&masterRepo.CategoryStruct{})
-		unitRepo := masterRepo.UnitInterface(&masterRepo.UnitStruct{})
-		priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
-		category, _, _ := categoryRepo.CategoryById(&categoryStruct)
-		unit, _, _ := unitRepo.UnityById(&UnitStruct)
-		price, _, _ := priceRepo.PriceById(&pricestruct)
-
-		values := models.ProductAll{
-			Id:        value.Id,
-			Name:      value.Name,
-			Category:  category,
-			Quantity:  value.Quantity,
-			Price:     price,
-			Unit:      unit,
-			CreatedOn: value.CreatedOn,
-		}
+		value, status, descreption := product.GetProductById(&productStruct.Id)
+		
 		if err != nil {
 			fmt.Println("Error in Product GetAll QueryRow :", err)
 			return result, false, "failed to  Get All Product Data"
 		}
-		result = append(result, values)
+		if !status {
+			fmt.Println(descreption)
+			return result, false,descreption
+		}
+		result = append(result, value)
 	}
 	return result, true, "sucessfully Completed"
 }
