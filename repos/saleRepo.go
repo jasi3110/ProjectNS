@@ -13,7 +13,8 @@ type SaleInterface interface {
 	CreateSale(Obj *models.Invoice) (bool, string, models.Invoice)
 	InvoiceGetall() ([]models.Invoice, bool)
 	SaleGetByBillid(obj *int64) (models.InvoiceBillById, bool, string)
-	GetUserReportByDateRange(obj *models.GetUserReportByDateRange)  ([]models.InvoiceBillById, bool, string)
+	GetUserReportByDateRange(obj *models.GetUserReportByDateRange) ([]models.InvoiceBillById, bool, string)
+	SaleGetByDate(obj *string) ([]models.InvoiceBillById, bool, string)
 }
 
 type SaleStruct struct {
@@ -208,7 +209,7 @@ func (sale *SaleStruct) SaleGetByBillid(obj *int64) (models.InvoiceBillById, boo
 			fmt.Println(descreptionprice)
 			return result, false, "Failed"
 		}
-		value.Price = valueprice.ProductPrice
+		value.Price.ProductPrice = valueprice.ProductPrice
 		value.Quantity = productStruct.Quantity
 		result.Items = append(result.Items, value)
 
@@ -217,7 +218,7 @@ func (sale *SaleStruct) SaleGetByBillid(obj *int64) (models.InvoiceBillById, boo
 	return result, true, "Sucessfully Completed"
 }
 
-func (sale *SaleStruct) GetUserReportByDateRange(obj *models.GetUserReportByDateRange)  ([]models.InvoiceBillById, bool, string) {
+func (sale *SaleStruct) GetUserReportByDateRange(obj *models.GetUserReportByDateRange) ([]models.InvoiceBillById, bool, string) {
 
 	Db, isconnceted := utls.OpenDbConnection()
 
@@ -237,7 +238,7 @@ func (sale *SaleStruct) GetUserReportByDateRange(obj *models.GetUserReportByDate
 									where createdon between $1 and $2`, obj.FromDate, obj.ToDate)
 	if err != nil {
 		fmt.Println("Error in QueryRow of  GetUserReportByDateRange :", err)
-		return res,false,"Failed"
+		return res, false, "Failed"
 	}
 
 	// myObj := domain.Sales{}
@@ -252,16 +253,79 @@ func (sale *SaleStruct) GetUserReportByDateRange(obj *models.GetUserReportByDate
 		)
 		if err != nil {
 			fmt.Println("Error in QueryRow Scan in  GetUserReportByDateRange :", err)
-			return res,false,"Failed"
+			return res, false, "Failed"
 		}
 		billid := 100001 + result.Id
 		value, status, descreption := sale.SaleGetByBillid(&billid)
 		if !status {
 			fmt.Println(descreption)
-			return res,false,"Failed"
+			return res, false, "Failed"
 		}
 		result.Items = append(result.Items, value.Items...)
 		res = append(res, result)
 	}
-	return res,true,"Successfully Completed"
+	return res, true, "Successfully Completed"
+}
+
+func (sale *SaleStruct) SaleGetByDate(obj *string) ([]models.InvoiceBillById, bool, string) {
+	Db, isconnceted := utls.OpenDbConnection()
+	res := []models.InvoiceBillById{}
+	result := models.InvoiceBillById{}
+	productStruct := models.ProductAll{}
+
+	if !isconnceted {
+		fmt.Println("DB is Disconnceted in SaleGetByBillid")
+		return res, false, "Failed"
+	}
+
+	query, err := Db.Query(`SELECT          id,
+											customerid,
+											billid,
+											productid,
+											productprice,
+											quantity,
+											createdon,
+											createdby
+												FROM "saleentry"
+												WHERE createdon = $1`, obj)
+	if err != nil {
+		fmt.Println("Error in SaleGetByBillid QueryRow :", err)
+		return res, false, "Failed"
+	}
+	for query.Next() {
+		err := query.Scan(&result.Id,
+			&result.CustomerId,
+			&result.BillId,
+			&productStruct.Id,
+			&productStruct.Price.Id,
+			&productStruct.Quantity,
+			&result.CreatedOn,
+			&result.CreatedBy,
+		)
+		if err != nil {
+			fmt.Println("Error in SaleGetByBillid QueryRow :", err)
+			return res, false, "Failed"
+		}
+		productRepo := ProductInterface(&ProductStruct{})
+		value, status, descreption := productRepo.GetProductById(&productStruct.Id)
+		if !status {
+			fmt.Println(descreption)
+			return res, false, "Failed"
+		}
+		priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
+		valueprice, statusprice, descreptionprice := priceRepo.PriceById(&productStruct.Price)
+		if !statusprice {
+			fmt.Println(descreptionprice)
+			return res, false, "Failed"
+		}
+		value.Price.ProductPrice = valueprice.ProductPrice
+		value.Quantity = productStruct.Quantity
+		result.Items = append(result.Items, value)
+		res := append(res, result)
+
+		fmt.Println("", res)
+	}
+
+	fmt.Println("", result)
+	return res, true, "Sucessfully Completed"
 }

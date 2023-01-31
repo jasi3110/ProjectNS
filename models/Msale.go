@@ -12,7 +12,7 @@ type Invoice struct {
 
 type InvoiceBillById struct {
 	Id         int64        `json:"id"`
-	Items      []Product `json:"items"`
+	Items      []ProductAll `json:"items"`
 	BillAmount int64        `json:"billamount"`
 	BillId     int64        `json:"billid"`
 	CustomerId int64        `json:"customerid"`
