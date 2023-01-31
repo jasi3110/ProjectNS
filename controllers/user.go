@@ -215,14 +215,16 @@ func (user *UserController) UserGetById(w http.ResponseWriter, r *http.Request) 
 
 func Validrequst(obj models.User) (bool, string) {
 
-	if models.VerifyMobileno(obj.Mobileno) {
-		if models.VerifyEmail(obj.Email) {
-			if models.VerifyPassword(obj.Password) {
-				return true, "Validation Sucessfully Completed"
-			}
-		}
+	switch  {
+	case !models.VerifyMobileno(obj.Mobileno):
+	  return false,"Invailed Mobile Number"
+	case!models.VerifyEmail(obj.Email) :
+		return false,"Invailed Email"
+	case !models.VerifyPassword(obj.Password):
+	  return false,"Make Your Password Strong "
+	default:
+		return true,"Vaildation Sucessfully Completed"
 	}
-	return false, "Error in validition Request "
 }
 
 func ValidrequstUpdate(obj models.UserUpdate) (bool, string) {
@@ -231,7 +233,7 @@ func ValidrequstUpdate(obj models.UserUpdate) (bool, string) {
 			return true, "Validation Sucessfully Completed"
 		}
 	}
-	return false, "Error in validition Request "
+	return false, "Invalid Mobile Number Or Email "
 }
 
 func ValidrequstPassword(obj models.UserPassword) (bool, string) {
@@ -241,7 +243,7 @@ func ValidrequstPassword(obj models.UserPassword) (bool, string) {
 			return true, "Validation Sucessfully Completed"
 		}
 	}
-	return false, "Error in validition Request "
+	return false, "Invalid Mobile Number Or Password "
 }
 
 // VALIDATION FOR TOKEN

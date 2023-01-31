@@ -15,7 +15,7 @@ type CategoryResponses struct {
 
 type GetAllCategoryResponse struct {
 	Statuscode  int64      `json:"statuscode"`
-	Status     bool       `json:"status"`
+	Status      bool       `json:"status"`
 	Value       []Category `json:"categorydata"`
 	Descreption string     `json:"desc"`
 }
@@ -55,7 +55,7 @@ type Role struct {
 type RoleResponses struct {
 	Statuscode  int64  `json:"statuscode"`
 	Status      bool   `json:"status"`
-	Value     Role   `json:"roledata"`
+	Value       Role   `json:"roledata"`
 	Descreption string `json:"desc"`
 }
 
@@ -64,4 +64,28 @@ type GetAllRoleResponse struct {
 	Status      bool   `json:"status"`
 	Value       []Role `json:"roledata"`
 	Descreption string `json:"desc"`
+}
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// USER ADDRESS
+
+type UserAddress struct {
+	Id         string `json:"id"`
+	Customerid int64  `json:"customerid"`
+	Name       string `json:"name"`
+	Address    string `json:"address"`
+}
+
+type UserAddressResponses struct {
+	Statuscode  int64       `json:"statuscode"`
+	Status      bool        `json:"status"`
+	Value       UserAddress `json:"addressdata"`
+	Descreption string      `json:"desc"`
+}
+
+type GetAllUserAddressResponse struct {
+	Statuscode  int64         `json:"statuscode"`
+	Status      bool          `json:"status"`
+	Value       []UserAddress `json:"categorydata"`
+	Descreption string        `json:"desc"`
 }
