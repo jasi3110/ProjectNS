@@ -110,3 +110,53 @@ func (product *Product) ProductGetAll(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(resp)
 }
+
+func (Product *Product) ProductGetAllByCategory(w http.ResponseWriter, r *http.Request) {
+
+	request := mux.Vars(r)
+	id, err := strconv.ParseInt(request["id"], 10, 64)
+
+	if err != nil {
+		fmt.Println("Error in Decoding ProductGetALLByCategory  Request :", err)
+	}
+	repo := repos.ProductInterface(&repos.ProductStruct{})
+
+	value, status, descreption := repo.ProductGetAllByCategory(&id)
+	
+	response := models.GetAllProductResponse{
+		Statuscode:  200,
+		Status:      status,
+		Value:       value,
+		Descreption: descreption,
+	}
+	resp, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println("Error in Marshal ProductGetByCategory response :", err)
+	}
+	w.Write(resp)
+}
+
+func (Product *Product) ProductGetAllByUnit(w http.ResponseWriter, r *http.Request) {
+
+	request := mux.Vars(r)
+	id, err := strconv.ParseInt(request["id"], 10, 64)
+
+	if err != nil {
+		fmt.Println("Error in Decoding ProductGetALLByUnit  Request :", err)
+	}
+	repo := repos.ProductInterface(&repos.ProductStruct{})
+
+	value, status, descreption := repo.ProductGetAllByUnit(&id)
+	
+	response := models.GetAllProductResponse{
+		Statuscode:  200,
+		Status:      status,
+		Value:       value,
+		Descreption: descreption,
+	}
+	resp, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println("Error in Marshal ProductGetByUnit response :", err)
+	}
+	w.Write(resp)
+}

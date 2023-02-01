@@ -58,13 +58,13 @@ func (UserAddress *UserAddressController) UserAddressUpdate(w http.ResponseWrite
 func (UserAddress *UserAddressController) UserAddressGetById(w http.ResponseWriter, r *http.Request) {
 	request := mux.Vars(r)
 	id, err := strconv.ParseInt(request["id"], 10, 64)
-	useraddressid := strconv.FormatInt(id, 10)
+	// useraddressid := strconv.FormatInt(id, 10)
 	if err != nil {
 		fmt.Println("Error in Decoding  UserAddressGetById Request :", err)
 	}
 
 	UserAddressStruct := models.UserAddress{
-		Id: useraddressid,
+		Id: id,
 	}
 	if err != nil {
 		fmt.Println(err)
@@ -102,3 +102,24 @@ func (UserAddress *UserAddressController) UserAddressGetAll(w http.ResponseWrite
 }
 
 
+func (UserAddress *UserAddressController) UserAddressGetAllCustomer(w http.ResponseWriter, r *http.Request) {
+	request := mux.Vars(r)
+	id, err := strconv.ParseInt(request["customerid"], 10, 64)
+	// useraddressid := strconv.FormatInt(id, 10)
+	if err != nil {
+		fmt.Println("Error in Decoding  UserAddressGetById Request :", err)
+	}
+	repo := masterrepo.UserAddressInterface(&masterrepo.UserAddressStruct{})
+	value, status, descreption := repo.UserAddressGetAllCustomer(&id)
+	response := models.GetAllUserAddressResponse{
+		Statuscode:  200,
+		Status:      status,
+		Value:       value,
+		Descreption: descreption,
+	}
+	resp, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println("Error in Marshal UserAddressGetAll Response :",err)
+	}
+	w.Write(resp)
+}

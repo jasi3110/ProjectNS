@@ -65,12 +65,13 @@ type GetAllRoleResponse struct {
 	Value       []Role `json:"roledata"`
 	Descreption string `json:"desc"`
 }
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // USER ADDRESS
 
 type UserAddress struct {
-	Id         string `json:"id"`
+	Id         int64  `json:"id"`
 	Customerid int64  `json:"customerid"`
 	Name       string `json:"name"`
 	Address    string `json:"address"`

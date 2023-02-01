@@ -16,6 +16,8 @@ func ProductRoutes(router *mux.Router) *mux.Router {
 	router.Handle("/product/getbyid/{id}", http.HandlerFunc(productController.ProductGetById)).Methods(http.MethodGet)
 	router.Handle("/product/update", utls.Authorize(controllers.CheckAuthenticLogin(http.HandlerFunc(productController.ProductUpdate)))).Methods(http.MethodPost)
 	router.Handle("/product/getall", http.HandlerFunc(productController.ProductGetAll)).Methods(http.MethodGet)
+	router.Handle("/product/getallbycategory/{id}", http.HandlerFunc(productController.ProductGetAllByCategory)).Methods(http.MethodGet)
+	router.Handle("/product/getallbyunit/{id}", http.HandlerFunc(productController.ProductGetAllByUnit)).Methods(http.MethodGet)
 
 	return router
 }

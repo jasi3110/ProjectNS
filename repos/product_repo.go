@@ -13,6 +13,8 @@ type ProductInterface interface {
 	GetProductById(obj *int64) (models.ProductAll, bool, string)
 	ProductUpdate(obj *models.Product) (string, bool)
 	ProductGetAll() ([]models.ProductAll, bool, string)
+	ProductGetAllByUnit(obj *int64) ([]models.ProductAll, bool, string)
+	ProductGetAllByCategory(obj *int64) ([]models.ProductAll, bool, string)
 }
 type ProductStruct struct {
 }
@@ -150,6 +152,64 @@ func (product *ProductStruct) ProductGetAll() ([]models.ProductAll, bool, string
 		
 		if err != nil {
 			fmt.Println("Error in Product GetAll QueryRow :", err)
+			return result, false, "failed to  Get All Product Data"
+		}
+		if !status {
+			fmt.Println(descreption)
+			return result, false,descreption
+		}
+		result = append(result, value)
+	}
+	return result, true, "sucessfully Completed"
+}
+
+func (product *ProductStruct) ProductGetAllByCategory(obj *int64) ([]models.ProductAll, bool, string) {
+	Db, isConnected := utls.OpenDbConnection()
+	if !isConnected {
+		fmt.Println("DB Disconnceted in Product GetAllBY Category ")
+	}
+	result := []models.ProductAll{}
+	productStruct := models.Product{}
+
+	query, err := Db.Query(`SELECT id FROM "product" WHERE category=$1`,obj)
+	if err != nil {
+		log.Println(err)
+	}
+	for query.Next() {
+		err := query.Scan(&productStruct.Id)
+		value, status, descreption := product.GetProductById(&productStruct.Id)
+		
+		if err != nil {
+			fmt.Println("Error in Product GetAll Category QueryRow :", err)
+			return result, false, "failed to  Get All Product Data"
+		}
+		if !status {
+			fmt.Println(descreption)
+			return result, false,descreption
+		}
+		result = append(result, value)
+	}
+	return result, true, "sucessfully Completed"
+}
+
+func (product *ProductStruct) ProductGetAllByUnit(obj *int64) ([]models.ProductAll, bool, string) {
+	Db, isConnected := utls.OpenDbConnection()
+	if !isConnected {
+		fmt.Println("DB Disconnceted in Product GetAllBY Category ")
+	}
+	result := []models.ProductAll{}
+	productStruct := models.Product{}
+
+	query, err := Db.Query(`SELECT id FROM "product" WHERE unit=$1`,obj)
+	if err != nil {
+		log.Println(err)
+	}
+	for query.Next() {
+		err := query.Scan(&productStruct.Id)
+		value, status, descreption := product.GetProductById(&productStruct.Id)
+		
+		if err != nil {
+			fmt.Println("Error in Product GetAll Category QueryRow :", err)
 			return result, false, "failed to  Get All Product Data"
 		}
 		if !status {

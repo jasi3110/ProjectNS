@@ -89,3 +89,31 @@ func (category *CategoryStruct) CategoryGetAll() ([]models.Category, bool, strin
 	}
 	return result, true, "sucessfully Completed"
 }
+
+
+func (category *CategoryStruct) CategoryGetAllbyid() ([]models.Category, bool, string) {
+	Db, isConnected := utls.CreateDbConnection()
+	if !isConnected {
+		fmt.Println("DB Disconnceted in Category GetAll")
+	}
+	result := []models.Category{}
+	categoryStruct:=models.Category{}
+
+	query, err := Db.Query(`SELECT id,name FROM "category"`)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	for query.Next() {
+		err := query.Scan(
+			&categoryStruct.Id,
+			&categoryStruct.Name,
+		)
+		if err != nil {
+			fmt.Println("Error in Category GetAll QueryRow :", err)
+			return result, false, "failed to  Get All Category Data"
+		}
+		result = append(result, categoryStruct )
+	}
+	return result, true, "sucessfully Completed"
+}

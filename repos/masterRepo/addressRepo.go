@@ -11,6 +11,7 @@ type UserAddressInterface interface {
 	UserAddressGetById(obj *models.UserAddress) (models.UserAddress, bool, string)
 	UserAddressGetAll() ([]models.UserAddress, bool, string)
 	UserAddressUpdate(obj *models.UserAddress) (models.UserAddress, string, bool)
+	UserAddressGetAllCustomer(obj *int64) ([]models.UserAddress, bool, string)
 }
 type UserAddressStruct struct {
 }
@@ -21,7 +22,7 @@ func (UserAddress *UserAddressStruct) UserAddressCreate(obj *models.UserAddress)
 		fmt.Println("DB Disconnceted in UserAddress Create")
 	}
 
-	err := Db.QueryRow(`INSERT INTO "useraddress" customerid,name,address values($1,$2,$3)RETURNING id`, obj.Customerid,&obj.Name,obj.Address).Scan(&obj.Id)
+	err := Db.QueryRow(`INSERT INTO "useraddress" (customerid,name,address) values($1,$2,$3)RETURNING id`, obj.Customerid,&obj.Name,obj.Address).Scan(&obj.Id)
 	if err != nil {
 		fmt.Println("Error in Create Category QueryRow :", err)
 		return false, " UserAddressCreate Failed "
@@ -54,7 +55,7 @@ func (UserAddress *UserAddressStruct) UserAddressGetById(obj *models.UserAddress
 
 	query, _ := Db.Prepare(`SELECT id,customerid,name,address from "useraddress" where id=$1`)
 
-	err := query.QueryRow(obj.Id).Scan(&UserAddressStruct.Id,UserAddressStruct.Customerid, &UserAddressStruct.Name,&UserAddressStruct.Address)
+	err := query.QueryRow(obj.Id).Scan(&UserAddressStruct.Id,&UserAddressStruct.Customerid, &UserAddressStruct.Name,&UserAddressStruct.Address)
 
 	if err != nil {
 		fmt.Println("Error in UserAddress GetById QueryRow :", err)
@@ -72,6 +73,35 @@ func (UserAddress *UserAddressStruct) UserAddressGetAll() ([]models.UserAddress,
 	UserAddressStruct:=models.UserAddress{}
 
 	query, err := Db.Query(`SELECT id,customerid,name,address FROM "useraddress"`)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	for query.Next() {
+		err := query.Scan(
+			&UserAddressStruct.Id,
+			&UserAddressStruct.Customerid,
+			&UserAddressStruct.Name,
+			&UserAddressStruct.Address,
+		)
+		if err != nil {
+			fmt.Println("Error in UserAddress GetAll QueryRow :", err)
+			return result, false, "UserAddress GetAll Failed"
+		}
+		result = append(result, UserAddressStruct )
+	}
+	return result, true, "sucessfully Completed"
+}
+
+func (UserAddress *UserAddressStruct) UserAddressGetAllCustomer(obj *int64) ([]models.UserAddress, bool, string) {
+	Db, isConnected := utls.CreateDbConnection()
+	if !isConnected {
+		fmt.Println("DB Disconnceted in UserAddress GetAll")
+	}
+	result := []models.UserAddress{}
+	UserAddressStruct:=models.UserAddress{}
+
+	query, err := Db.Query(`SELECT id,customerid,name,address FROM "useraddress" WHERE customerid=$1`,obj)
 	if err != nil {
 		fmt.Println(err)
 	}

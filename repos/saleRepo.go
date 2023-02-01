@@ -76,7 +76,7 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 			productItem.Id,
 			productItem.Price,
 			productItem.Quantity,
-			obj.CreatedOn,
+			utls.GetCurrentDate(),
 			obj.CreatedBy,
 		).Scan(&a)
 		fmt.Println("", a)
