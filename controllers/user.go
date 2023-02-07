@@ -134,23 +134,9 @@ func (User *UserController) UserUpdatePassword(w http.ResponseWriter, r *http.Re
 		log.Println("Error in Decoding UserUpdatePassword Request :", err)
 	}
 
-	status, descreption := ValidrequstPassword(request)
-	if !status {
-		response := models.CommanRespones{
-			Statuscode:  200,
-			Status:      status,
-			Descreption: descreption,
-		}
-		resp, err := json.Marshal(response)
-
-		if err != nil {
-			log.Println("Error in Marshal UserUpdatePassword Validation Response :", err)
-		}
-		w.Write(resp)
-	} else {
 		repo := repos.UserInterface(&repos.UserRepo{})
 		descreption, status := repo.UserUpdatePassword(&request)
-		response := models.UserUpdatePassword{
+		response := models.CommanRespones{
 			Statuscode:  200,
 			Status:      status,
 			Descreption: descreption,
@@ -160,7 +146,6 @@ func (User *UserController) UserUpdatePassword(w http.ResponseWriter, r *http.Re
 			log.Println("Error in Marshal Update UserPassword Responsee:", err)
 		}
 		w.Write(resp)
-	}
 }
 
 func (User *UserController) UserGetAll(w http.ResponseWriter, r *http.Request) {
@@ -211,55 +196,108 @@ func (user *UserController) UserGetById(w http.ResponseWriter, r *http.Request) 
 	w.Write(resp)
 }
 
-// func (user *UserController)  UserverfiyMobileno(w http.ResponseWriter, r *http.Request) {
-// 	request := models.UserverfiyMobileno{}
+func (user *UserController) UserverfiyMobileno(w http.ResponseWriter, r *http.Request) {
+	request := models.UserverfiyMobileno{}
 
-// 	err := json.NewDecoder(r.Body).Decode(&request)
-// 	if err != nil {
-// 		log.Println("Error in Decoding UserUpdatePassword Request :", err)
-// 	}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		log.Println("Error in Decoding UserUpdatePassword Request :", err)
+	}
 
-// 	status:= models.VerifyMobileno(request.Mobileno)
-// 	if !status {
-// 		response := models.CommanRespones{
-// 			Statuscode:  200,
-// 			Status:      status,
-// 			Descreption: "Check your Mobile Number",
-// 		}
-// 		resp, err := json.Marshal(response)
+	status := models.VerifyMobileno(request.Mobileno)
+	if !status {
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      status,
+			Descreption: "Check your Mobile Number",
+		}
+		resp, err := json.Marshal(response)
 
-// 		if err != nil {
-// 			log.Println("Error in Marshal UserUpdatePassword Validation Response :", err)
-// 		}
-// 		w.Write(resp)
-// 	} else {
-// 		repo := repos.UserInterface(&repos.UserRepo{})
-// 		descreption, status := repo.UserverfiyMobileno(&request)
-// 		response := models.UserUpdatePassword{
-// 			Statuscode:  200,
-// 			Status:      status,
-// 			Descreption: descreption,
-// 		}
-// 		resp, err := json.Marshal(&response)
-// 		if err != nil {
-// 			log.Println("Error in Marshal Update UserPassword Responsee:", err)
-// 		}
-// 		w.Write(resp)
-// 	}
-// }
+		if err != nil {
+			log.Println("Error in Marshal UserUpdatePassword Validation Response :", err)
+		}
+		w.Write(resp)
+	} else {
+		repo := repos.UserInterface(&repos.UserRepo{})
+		 value,status, descreption := repo.UserverfiyMobileno(&request)
+		response := models.UserverfiyOtp{
+			Statuscode:  200,
+			Status:      status,
+			Value: value,
+			Descreption: descreption,
+		}
+
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			log.Println("Error in Marshal Update UserPassword Responsee:", err)
+		}
+		w.Write(resp)
+	}
+}
+
+func (user *UserController) UserCheckOtp(w http.ResponseWriter, r *http.Request) {
+	request := models.UserverfiyMobileno{}
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		log.Println("Error in Decoding UserUpdatePassword Request :", err)
+	}
+
+	
+		repo := repos.UserInterface(&repos.UserRepo{})
+		value, status, descreption := repo.UserInvaildOtp(&request)
+		response := models.UserUpdatePassword{
+			Statuscode:  200,
+			Status:      status,
+			Value:       value,
+			Descreption: descreption,
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			log.Println("Error in Marshal Update UserPassword Responsee:", err)
+		}
+		w.Write(resp)
+}
+
+func (user *UserController) UserDelete(w http.ResponseWriter, r *http.Request) {
+	request := mux.Vars(r)
+	id, err := strconv.ParseInt(request["id"], 10, 64)
+	userid := models.User{
+		Id: id,
+	}
+	if err != nil {
+		log.Println("Error in Decoding UserGetById Request :", err)
+	}
+	repo := repos.UserInterface(&repos.UserRepo{})
+
+	 status, descreption := repo.UserDelete(&userid)
+	
+	response := models.CommanRespones{
+		Statuscode:  200,
+		Status:      status,
+		Descreption: descreption,
+	}
+	resp, err := json.Marshal(response)
+
+	if err != nil {
+		log.Println("Error in Marshal UserGetById Response :", err)
+	}
+	w.Write(resp)
+}
+
 // VALIDATION METHODS
 
 func Validrequst(obj models.User) (bool, string) {
 
-	switch  {
+	switch {
 	case !models.VerifyMobileno(obj.Mobileno):
-	  return false,"Invailed Mobile Number"
-	case!models.VerifyEmail(obj.Email) :
-		return false,"Invailed Email"
+		return false, "Invailed Mobile Number"
+	case !models.VerifyEmail(obj.Email):
+		return false, "Invailed Email"
 	case !models.VerifyPassword(obj.Password):
-	  return false,"Make Your Password Strong "
+		return false, "Make Your Password Strong "
 	default:
-		return true,"Vaildation Sucessfully Completed"
+		return true, "Vaildation Sucessfully Completed"
 	}
 }
 

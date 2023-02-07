@@ -6,6 +6,7 @@ import (
 	"OnlineShop/utls"
 	"fmt"
 	"log"
+	"strconv"
 	// "github.com/spf13/pflag"
 )
 
@@ -74,7 +75,7 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 			100001+obj.Id,
 			obj.Id,
 			productItem.Id,
-			productItem.Price,
+			productItem.Mrp,
 			productItem.Quantity,
 			utls.GetCurrentDate(),
 			obj.CreatedBy,
@@ -92,11 +93,14 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 		log.Println("Sales Entry Added", productItem.Id)
 		productRepo := ProductInterface(&ProductStruct{})
 		value, status, _ := productRepo.GetProductById(&productItem.Id)
-		productqty := value.Quantity
-		if productqty != 0 || status {
+		 
+		 productqty, _ := strconv.ParseFloat(value.Quantity, 32)
+		 productqty1,_:=strconv.ParseFloat(productItem.Quantity,32)
+		if productqty !=0  || status {
 			//reduce stock quantity from product table
-			productqty = productqty - productItem.Quantity
-			updateQueryqty, err := Txn.Query(`UPDATE  "product" SET  quantity=$1 WHERE id=$2`, productqty, productItem.Id)
+			productqty = productqty - productqty1
+			quatity:=strconv.FormatFloat(productqty, 'E', -1, 64)
+			updateQueryqty, err := Txn.Query(`UPDATE  "product" SET  quantity=$1 WHERE id=$2`, quatity, productItem.Id)
 
 			if err != nil {
 				fmt.Println("Error in CreateSale in Product Update QueryRow  :", err)
@@ -209,7 +213,8 @@ func (sale *SaleStruct) SaleGetByBillid(obj *int64) (models.InvoiceBillById, boo
 			fmt.Println(descreptionprice)
 			return result, false, "Failed"
 		}
-		value.Price.ProductPrice = valueprice.ProductPrice
+		value.Price.Mrp = valueprice.Mrp
+		value.Price.Nop = valueprice.Nop
 		value.Quantity = productStruct.Quantity
 		result.Items = append(result.Items, value)
 
@@ -318,7 +323,8 @@ func (sale *SaleStruct) SaleGetByDate(obj *string) ([]models.InvoiceBillById, bo
 			fmt.Println(descreptionprice)
 			return res, false, "Failed"
 		}
-		value.Price.ProductPrice = valueprice.ProductPrice
+		value.Price.Mrp = valueprice.Mrp
+		value.Price.Nop = valueprice.Nop
 		value.Quantity = productStruct.Quantity
 		result.Items = append(result.Items, value)
 		res := append(res, result)

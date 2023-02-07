@@ -5,9 +5,10 @@ import (
 	// "fmt"
 	// "strconv"
 	// "fmt"
+	"fmt"
 	"strings"
+	"time"
 	"unicode"
-
 )
 
 type CommanRespones struct {
@@ -43,14 +44,11 @@ func VerifyPassword(s string) bool {
 }
 
 
-// func GenerateTrxNumber()int64{
-// // date:=utls.GetCurrentDate()
-
-// 	 *trxnum:=1000 +1
-// 	 sum:=trxnum
-// 	 trxnum=&sum
-// 	return int64(sum)
-// 	}
+func GenerateOtp()string{
+	genotp := fmt.Sprint(time.Now().Nanosecond())
+	otp:=genotp[0:4]
+	return otp
+	}
 
 
 

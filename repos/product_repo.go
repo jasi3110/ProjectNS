@@ -24,20 +24,24 @@ func (product *ProductStruct) ProductCreate(obj *models.Product) (string, bool) 
 	if !isConnected {
 		fmt.Println("DB Disconnceted in ProductCreate")
 	}
-
+if obj.Image==""{
+obj.Image="https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600w-1114445501.jpg"
+}
 	err := Db.QueryRow(`INSERT into "product"(
+		image,
 		name,
 		category,
 		quantity,
 		unit,
 		price,
 		createdon
-		)values($1,$2,$3,$4,$5,$6)RETURNING id`,
+		)values($1,$2,$3,$4,$5,$6,$7)RETURNING id`,
+		obj.Image,
 		obj.Name,
 		obj.Category,
 		obj.Quantity,
 		obj.Unit,
-		obj.Price,
+		0,
 		utls.GetCurrentDate()).Scan(&obj.Id)
 
 	if err != nil {
@@ -47,7 +51,8 @@ func (product *ProductStruct) ProductCreate(obj *models.Product) (string, bool) 
 	priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
 	pricesStruct := models.Price{
 		ProductId:    obj.Id,
-		ProductPrice: obj.Price,
+		Mrp: obj.Mrp,
+		Nop: obj.Nop,
 	}
 	status, descreption, value := priceRepo.CreatePrice(&pricesStruct)
 
@@ -74,7 +79,8 @@ func (product *ProductStruct) ProductUpdate(obj *models.Product) (string, bool) 
 	priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
 	pricesStruct := models.Price{
 		ProductId:    obj.Id,
-		ProductPrice: obj.Price,
+		Mrp: obj.Mrp,
+		Nop: obj.Nop,
 	}
 	status, descreption, value := priceRepo.CreatePrice(&pricesStruct)
 
@@ -82,10 +88,9 @@ func (product *ProductStruct) ProductUpdate(obj *models.Product) (string, bool) 
 		fmt.Println(descreption)
 		return descreption, false
 	}
-	fmt.Println("not updated")
-	pricequery := `UPDATE "product" SET price=$2,quantity=$3 WHERE id=$1`
-	a, err := Db.Exec(pricequery, &obj.Id, &value.Id, &obj.Quantity)
 
+	pricequery := `UPDATE "product" SET image=$2,name=$3,category=$4,unit=$5,price=$6,quantity=$7 WHERE id=$1`
+	a, err := Db.Exec(pricequery, &obj.Id,&obj.Image,&obj.Name,&obj.Category,obj.Unit, &value.Id, &obj.Quantity)
 	if err != nil {
 		fmt.Println("Error in Price Update QueryRow :", a, err)
 		return "Update Failed", false
@@ -114,7 +119,6 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.ProductAll, boo
 								   unit,
 								   coalesce( (select item from unit where id = unit) ) as unit,
 								   price,
-								   coalesce( (select productprice from price where id = price) ) as price,
 								   createdon from "product" where id=$1`)
 	err := query.QueryRow(obj).Scan(&productStruct.Id,
 		&productStruct.Name,
@@ -124,11 +128,18 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.ProductAll, boo
 		&productStruct.Unit.Id,
 		&productStruct.Unit.Item,
 		&productStruct.Price.Id,
-		&productStruct.Price.ProductPrice,
 		&productStruct.CreatedOn)
 	if err != nil {
 		fmt.Println("Error in Product GetById QueryRow :", err)
 		return productStruct, false, "Failed"
+	}
+	priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
+	value,status, descreption := priceRepo.PriceById(&productStruct.Price)
+
+	productStruct.Price = value
+	if !status {
+		fmt.Println(descreption)
+		return productStruct,false,descreption
 	}
 	
 	return productStruct, true, "Get Product Sucessfully Completed"

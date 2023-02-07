@@ -25,9 +25,10 @@ func (price *PriceStruct) CreatePrice(obj *models.Price) (bool, string, models.P
 
 	err := Db.QueryRow(`INSERT INTO "price" (
 		productid,
-		productprice,
-		createdon)values($1,$2,$3)RETURNING id `,
-		obj.ProductId, obj.ProductPrice, utls.GetCurrentDate()).Scan(&obj.Id)
+		mrp,
+		nop,
+		createdon)values($1,$2,$3,$4)RETURNING id `,
+		obj.ProductId, obj.Mrp,obj.Nop, utls.GetCurrentDate()).Scan(&obj.Id)
 	if err != nil {
 		fmt.Println("Error in Createprice QueryRow:", err)
 		return false, " Createprice Failed ", *obj
@@ -41,8 +42,8 @@ func (price *PriceStruct) PriceUpdate(obj *models.Price) (string, bool) {
 		fmt.Println("DB Disconnceted in PriceUpdate")
 	}
 
-	query := `UPDATE "price" SET productprice=$2,productid=$3 WHERE id=$1`
-	_, err := Db.Exec(query, &obj.Id, &obj.ProductPrice, &obj.ProductId)
+	query := `UPDATE "price" SET mrp=$2,nop=$3,productid=$4 WHERE id=$1`
+	_, err := Db.Exec(query, &obj.Id, &obj.Mrp,&obj.Nop, &obj.ProductId)
 
 	if err != nil {
 		fmt.Println("Error in PriceUpdate QueryRow :", err)
@@ -57,12 +58,13 @@ func (price *PriceStruct) PriceByDate(obj *models.Price) (models.Price, bool, st
 		fmt.Println("DB Disconnceted in PriceByDate")
 	}
 
-	query, _ := Db.Prepare(`SELECT id,productid,productprice,createdon from "price" where productid=$1 and createdon=$2`)
+	query, _ := Db.Prepare(`SELECT id,productid,mrp,nop,createdon from "price" where productid=$1 and createdon=$2`)
 	priceStruct := models.Price{}
 	err := query.QueryRow(obj.ProductId, obj.Createdon).Scan(
 		&priceStruct.Id,
 		&priceStruct.ProductId,
-		&priceStruct.ProductPrice,
+		&priceStruct.Mrp,
+		&priceStruct.Nop,
 		&priceStruct.Createdon)
 
 	if err != nil {
@@ -79,9 +81,9 @@ func (price *PriceStruct) PriceById(obj *models.Price) (models.Price, bool, stri
 	}
 	priceStruct := models.Price{}
 
-	query, _ := Db.Prepare(`SELECT id,productid,productprice,createdon from "price" where id=$1`)
+	query, _ := Db.Prepare(`SELECT id,productid,mrp,nop,createdon from "price" where id=$1`)
 
-	err := query.QueryRow(obj.Id).Scan(&priceStruct.Id, &priceStruct.ProductId, &priceStruct.ProductPrice, &priceStruct.Createdon)
+	err := query.QueryRow(obj.Id).Scan(&priceStruct.Id, &priceStruct.ProductId, &priceStruct.Mrp,&priceStruct.Nop, &priceStruct.Createdon)
 
 	if err != nil {
 		fmt.Println("Error in PriceById QueryRow :", err)
@@ -98,7 +100,7 @@ func (price *PriceStruct) PriceGetAll() ([]models.Price, bool, string) {
 	result := []models.Price{}
 	priceStruct := models.Price{}
 
-	query, err := Db.Query(`SELECT id,productid,productprice,createdon FROM "price"`)
+	query, err := Db.Query(`SELECT id,productid,mrp,nop,createdon FROM "price"`)
 	if err != nil {
 		fmt.Println("Error in Price GetAll Queryrow :", err)
 	}
@@ -107,7 +109,8 @@ func (price *PriceStruct) PriceGetAll() ([]models.Price, bool, string) {
 		err := query.Scan(
 			&priceStruct.Id,
 			&priceStruct.ProductId,
-			&priceStruct.ProductPrice,
+			&priceStruct.Mrp,
+			&priceStruct.Nop,
 			&priceStruct.Createdon,
 		)
 		if err != nil {
@@ -127,7 +130,7 @@ func (price *PriceStruct) PriceProductGetAll(obj *models.Price) ([]models.Price,
 	result := []models.Price{}
 	priceStruct := models.Price{}
 
-	query, err := Db.Query(`SELECT id,productid,productprice,createdon FROM "price" WHERE productid=$1`, obj.ProductId)
+	query, err := Db.Query(`SELECT id,productid,mrp,nop,createdon FROM "price" WHERE productid=$1`, obj.ProductId)
 	if err != nil {
 		fmt.Println("Error in Price GetAll Queryrow :", err)
 	}
@@ -136,7 +139,8 @@ func (price *PriceStruct) PriceProductGetAll(obj *models.Price) ([]models.Price,
 		err := query.Scan(
 			&priceStruct.Id,
 			&priceStruct.ProductId,
-			&priceStruct.ProductPrice,
+			&priceStruct.Mrp,
+			&priceStruct.Nop,
 			&priceStruct.Createdon,
 		)
 		if err != nil {

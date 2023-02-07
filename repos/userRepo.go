@@ -14,8 +14,10 @@ type UserInterface interface {
 	UserGetall() ([]models.User, bool)
 	UserGetById(obj *models.User) (models.User, bool, string)
 	UserUpdatePassword(obj *models.UserPassword) (string, bool)
-	// UserverfiyMobileno(obj *models.UserverfiyMobileno)(models.UserverfiyMobileno,bool,string)
+	UserverfiyMobileno(obj *models.UserverfiyMobileno) ( int64,bool, string)
 	GetByUserMobileno(obj *models.User) (models.User, bool)
+	UserInvaildOtp(obj *models.UserverfiyMobileno) (models.UserPassword, bool, string)
+	UserDelete(obj *models.User) (bool, string)
 }
 
 type UserRepo struct {
@@ -46,8 +48,10 @@ func (user *UserRepo) UserCreate(obj *models.User) (string, bool) {
 		role,
 		password,
 		createdon,
-		token
-	)values($1,$2,$3,$4,$5,$6,$7)RETURNING id`,
+		token,
+		isdeleted,
+		otppassword
+	)values($1,$2,$3,$4,$5,$6,$7,$8,$9)RETURNING id`,
 		obj.Name,
 		obj.Email,
 		obj.Mobileno,
@@ -55,6 +59,8 @@ func (user *UserRepo) UserCreate(obj *models.User) (string, bool) {
 		obj.Password,
 		utls.GetCurrentDateTime(),
 		" NULL TOKEN",
+		0,
+		models.GenerateOtp(),
 	).Scan(&obj.Id)
 
 	if err != nil {
@@ -76,7 +82,7 @@ func (user *UserRepo) UserLogin(obj *models.LoginUser) (models.User, bool, strin
 									mobileno,
 									role,
 									createdon
-									from "user" where mobileno=$1 AND password=$2`)
+									from "user" where mobileno=$1 and password=$2 and isdeleted=0`)
 	if err != nil {
 		log.Println("Error in User Login QueryRow :", err)
 		return userStruct, false, "User Login  Failed"
@@ -95,7 +101,7 @@ func (user *UserRepo) UserLogin(obj *models.LoginUser) (models.User, bool, strin
 	}
 
 	Token := utls.GenerateJwtToken(userStruct.Id, userStruct.Mobileno, userStruct.Name)
-	log.Println(userStruct.Id, Token)
+	// log.Println(userStruct.Id, Token)
 	updatequery := `UPDATE  "user" SET  token=$2 WHERE id=$1;`
 	_, err = myDb.Exec(updatequery, userStruct.Id, Token)
 
@@ -117,15 +123,13 @@ func (user *UserRepo) UserUpdate(obj *models.UserUpdate) (models.UserUpdate, boo
 	query := `UPDATE "user"
 	SET name      =$2,
 	    email     =$3,
-	    mobileno  =$4,
-	    role      =$5
-	    WHERE id=$1 `
+	    mobileno  =$4
+	    WHERE id=$1 and isdeleted=0`
 	_, err := Db.Exec(query,
 		&obj.Id,
 		&obj.Name,
 		&obj.Email,
 		&obj.Mobileno,
-		&obj.Role,
 	)
 	if err != nil {
 		fmt.Println("Error in User Update QueryRow :", err)
@@ -140,8 +144,8 @@ func (user *UserRepo) UserUpdatePassword(obj *models.UserPassword) (string, bool
 		fmt.Println("DB Disconnceted in User Update Password ")
 	}
 
-	query := `UPDATE "user" SET password = $3 WHERE id=$1 and mobileno=$2`
-	_, err := Db.Exec(query, &obj.Id, &obj.Mobileno, &obj.Password)
+	query := `UPDATE "user" SET password = $2 WHERE id=$1 and isdeleted=0`
+	_, err := Db.Exec(query, &obj.Id, &obj.Password)
 	if err != nil {
 		fmt.Println("Error in User Update Password QueryRow :", err)
 		return "User Password Update Failed", false
@@ -157,7 +161,7 @@ func (user *UserRepo) UserGetall() ([]models.User, bool) {
 	userStruct := models.User{}
 	result := []models.User{}
 
-	query, err := Db.Query(`SELECT id,name,email,mobileno,role,password,createdon FROM "user"`)
+	query, err := Db.Query(`SELECT id,name,email,mobileno,role,password,createdon FROM "user" WHERE isdeleted=0`)
 	if err != nil {
 		log.Println(err)
 	}
@@ -213,7 +217,7 @@ func (user *UserRepo) GetByUserMobileno(obj *models.User) (models.User, bool) {
 	}
 	userStruct := models.User{}
 
-	res, _ := Db.Prepare(`SELECT id,name,email,mobileno,role,token from "user" where mobileno=$1`)
+	res, _ := Db.Prepare(`SELECT id,name,email,mobileno,role,token from "user" where mobileno=$1 and isdeleted=0`)
 
 	err := res.QueryRow(obj.Mobileno).Scan(&userStruct.Id,
 		&userStruct.Name,
@@ -229,26 +233,68 @@ func (user *UserRepo) GetByUserMobileno(obj *models.User) (models.User, bool) {
 	return userStruct, true
 }
 
-// func UserverfiyMobileno(obj *models.UserverfiyMobileno)(models.UserverfiyMobileno,bool,string){
-// 	Db, isConnected := utls.OpenDbConnection()
+func (user *UserRepo) UserverfiyMobileno(obj *models.UserverfiyMobileno) ( int64,bool, string) {
+	Db, isConnected := utls.OpenDbConnection()
 
-// 	if !isConnected {
-// 		fmt.Println("DB Disconnented in  UserverfiyMobileno Repo ")
-// 	}
-// 	query, err := Db.Query(`SELECT mobileno FROM "user"`)
-// 	if err != nil {
-// 		log.Println("Error in  UserverfiyMobileno  QueryRow :", err)
-// 	}
-// 	userStruct := models.User{}
-// 	for query.Next() {
-// 		query.Scan(&userStruct.Mobileno)
-// 		var otp int64 =  000000
-// 		if obj.Mobileno == userStruct.Mobileno{
-// 			obj.OTP = otp
-// 			fmt.Println(" Mobile number :",obj.Mobileno)
-// 			return *obj,true,"this Mobile number or Email already Used by Other User "
-// 		}
-// 	}
-// 	return*obj,true,"this Mobile number or Email already Used by Other User "
-		
-// }
+	if !isConnected {
+		fmt.Println("DB Disconnented in  UserverfiyMobileno Repo ")
+	}
+	query, err := Db.Query(`SELECT id,mobileno FROM "user" WHERE isdeleted=0`)
+	if err != nil {
+		log.Println("Error in  UserverfiyMobileno  QueryRow :", err)
+	}
+	userStruct := models.User{}
+	otp := models.GenerateOtp()
+	for query.Next() {
+		query.Scan(&userStruct.Id,&userStruct.Mobileno)
+
+		if obj.Mobileno == userStruct.Mobileno {
+			obj.OTP = otp
+			query := `UPDATE "user"SET otppassword  =$2 WHERE mobileno=$1 and isdeleted=0`
+
+			_, err := Db.Exec(query, &obj.Mobileno, &obj.OTP)
+			if err != nil {
+				log.Println("Error in  UserverfiyMobileno Update Mobile Number QueryRow :", err)
+				// missing  OTP SEND TO MOBILENUMBER
+				return userStruct.Id,false, "Error in  UserverfiyMobileno Update Mobile Number QueryRow"
+
+			}
+			fmt.Println(" Mobile number :", obj.Mobileno, obj.OTP)
+			return userStruct.Id,true, "Sucessfully Compeleted"
+		}
+	}
+	return userStruct.Id,false, "Check You Entered Mobile Number"
+}
+
+func (user *UserRepo) UserInvaildOtp(obj *models.UserverfiyMobileno) (models.UserPassword, bool, string) { 
+	Db, conncet := utls.OpenDbConnection()
+	if !conncet {
+		fmt.Println("DB Disconnceted in User GetById ")
+	}
+	userStruct := models.UserPassword{}
+
+	query, _ := Db.Prepare(`SELECT id,mobileno, password from "user" where id=$1 and otppassword=$2 and isdeleted=0`)
+
+	err := query.QueryRow(obj.Id, obj.OTP).Scan(&userStruct.Id,&userStruct.Mobileno,&userStruct.Password)
+
+	if err != nil {
+		fmt.Println("Error in User GetById QueryRow :", err)
+		return userStruct, false, "Failed"
+	}
+
+	return userStruct, true, "Sucessfully Compelted"
+}
+
+func (user *UserRepo) UserDelete(obj *models.User) (bool, string) {
+	Db, isconnceted := utls.OpenDbConnection()
+	if !isconnceted {
+		fmt.Println("DB disconnceted in UserDelete ")
+	}
+	query := `UPDATE "user" SET isdeleted=1  WHERE id=$1`
+	_, err := Db.Exec(query, obj.Id)
+	if err != nil {
+		fmt.Println("Error in User Delete QueryRow :", err)
+		return false, "User Delete Failed"
+	}
+	return true, "User Deleted Sucessfully Completed"
+}
