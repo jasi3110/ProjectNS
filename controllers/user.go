@@ -211,6 +211,42 @@ func (user *UserController) UserGetById(w http.ResponseWriter, r *http.Request) 
 	w.Write(resp)
 }
 
+// func (user *UserController)  UserverfiyMobileno(w http.ResponseWriter, r *http.Request) {
+// 	request := models.UserverfiyMobileno{}
+
+// 	err := json.NewDecoder(r.Body).Decode(&request)
+// 	if err != nil {
+// 		log.Println("Error in Decoding UserUpdatePassword Request :", err)
+// 	}
+
+// 	status:= models.VerifyMobileno(request.Mobileno)
+// 	if !status {
+// 		response := models.CommanRespones{
+// 			Statuscode:  200,
+// 			Status:      status,
+// 			Descreption: "Check your Mobile Number",
+// 		}
+// 		resp, err := json.Marshal(response)
+
+// 		if err != nil {
+// 			log.Println("Error in Marshal UserUpdatePassword Validation Response :", err)
+// 		}
+// 		w.Write(resp)
+// 	} else {
+// 		repo := repos.UserInterface(&repos.UserRepo{})
+// 		descreption, status := repo.UserverfiyMobileno(&request)
+// 		response := models.UserUpdatePassword{
+// 			Statuscode:  200,
+// 			Status:      status,
+// 			Descreption: descreption,
+// 		}
+// 		resp, err := json.Marshal(&response)
+// 		if err != nil {
+// 			log.Println("Error in Marshal Update UserPassword Responsee:", err)
+// 		}
+// 		w.Write(resp)
+// 	}
+// }
 // VALIDATION METHODS
 
 func Validrequst(obj models.User) (bool, string) {

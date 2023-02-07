@@ -55,3 +55,8 @@ type UserUpdatePassword struct {
 	Status      bool   `json:"status"`
 	Descreption string `json:"desc"`
 }
+
+type UserverfiyMobileno struct {
+	Mobileno string `json:"mobileno"`
+	OTP      int64  `json:"otp"`
+}

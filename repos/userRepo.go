@@ -14,6 +14,7 @@ type UserInterface interface {
 	UserGetall() ([]models.User, bool)
 	UserGetById(obj *models.User) (models.User, bool, string)
 	UserUpdatePassword(obj *models.UserPassword) (string, bool)
+	// UserverfiyMobileno(obj *models.UserverfiyMobileno)(models.UserverfiyMobileno,bool,string)
 	GetByUserMobileno(obj *models.User) (models.User, bool)
 }
 
@@ -50,7 +51,7 @@ func (user *UserRepo) UserCreate(obj *models.User) (string, bool) {
 		obj.Name,
 		obj.Email,
 		obj.Mobileno,
-		obj.Role,
+		"3",
 		obj.Password,
 		utls.GetCurrentDateTime(),
 		" NULL TOKEN",
@@ -227,3 +228,27 @@ func (user *UserRepo) GetByUserMobileno(obj *models.User) (models.User, bool) {
 	}
 	return userStruct, true
 }
+
+// func UserverfiyMobileno(obj *models.UserverfiyMobileno)(models.UserverfiyMobileno,bool,string){
+// 	Db, isConnected := utls.OpenDbConnection()
+
+// 	if !isConnected {
+// 		fmt.Println("DB Disconnented in  UserverfiyMobileno Repo ")
+// 	}
+// 	query, err := Db.Query(`SELECT mobileno FROM "user"`)
+// 	if err != nil {
+// 		log.Println("Error in  UserverfiyMobileno  QueryRow :", err)
+// 	}
+// 	userStruct := models.User{}
+// 	for query.Next() {
+// 		query.Scan(&userStruct.Mobileno)
+// 		var otp int64 =  000000
+// 		if obj.Mobileno == userStruct.Mobileno{
+// 			obj.OTP = otp
+// 			fmt.Println(" Mobile number :",obj.Mobileno)
+// 			return *obj,true,"this Mobile number or Email already Used by Other User "
+// 		}
+// 	}
+// 	return*obj,true,"this Mobile number or Email already Used by Other User "
+		
+// }
