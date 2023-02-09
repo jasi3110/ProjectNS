@@ -14,9 +14,9 @@ type UserInterface interface {
 	UserGetall() ([]models.User, bool)
 	UserGetById(obj *models.User) (models.User, bool, string)
 	UserUpdatePassword(obj *models.UserPassword) (string, bool)
-	UserverfiyMobileno(obj *models.UserverfiyMobileno) ( int64,bool, string)
+	Userverify(obj *models.Userverify) ( int64,bool, string)
 	GetByUserMobileno(obj *models.User) (models.User, bool)
-	UserInvaildOtp(obj *models.UserverfiyMobileno) (models.UserPassword, bool, string)
+	UserCheckOtp(obj *models.Userverify) (models.UserPassword, bool, string)
 	UserDelete(obj *models.User) (bool, string)
 }
 
@@ -29,7 +29,7 @@ func (user *UserRepo) UserCreate(obj *models.User) (string, bool) {
 	if !isConnected {
 		fmt.Println("DB Disconnented in CreateUser Repo ")
 	}
-	query, err := Db.Query(`SELECT email,mobileno FROM "user"`)
+	query, err := Db.Query(`SELECT email,mobileno FROM "user" WHERE isdeleted=0`)
 	if err != nil {
 		log.Println("Error in CreateUser  QueryRow :", err)
 	}
@@ -100,7 +100,7 @@ func (user *UserRepo) UserLogin(obj *models.LoginUser) (models.User, bool, strin
 		return userStruct, false, "User Login  Failed"
 	}
 
-	Token := utls.GenerateJwtToken(userStruct.Id, userStruct.Mobileno, userStruct.Name)
+	Token := utls.GenerateJwtToken(userStruct.Id, userStruct.Mobileno, userStruct.Email)
 	// log.Println(userStruct.Id, Token)
 	updatequery := `UPDATE  "user" SET  token=$2 WHERE id=$1;`
 	_, err = myDb.Exec(updatequery, userStruct.Id, Token)
@@ -144,8 +144,8 @@ func (user *UserRepo) UserUpdatePassword(obj *models.UserPassword) (string, bool
 		fmt.Println("DB Disconnceted in User Update Password ")
 	}
 
-	query := `UPDATE "user" SET password = $2 WHERE id=$1 and isdeleted=0`
-	_, err := Db.Exec(query, &obj.Id, &obj.Password)
+	err :=Db.QueryRow( `UPDATE "user" SET password = $2 WHERE id=$1 and isdeleted=0`,&obj.Id,&obj.Password)
+	
 	if err != nil {
 		fmt.Println("Error in User Update Password QueryRow :", err)
 		return "User Password Update Failed", false
@@ -217,9 +217,12 @@ func (user *UserRepo) GetByUserMobileno(obj *models.User) (models.User, bool) {
 	}
 	userStruct := models.User{}
 
-	res, _ := Db.Prepare(`SELECT id,name,email,mobileno,role,token from "user" where mobileno=$1 and isdeleted=0`)
-
-	err := res.QueryRow(obj.Mobileno).Scan(&userStruct.Id,
+	res, err := Db.Prepare(`SELECT id,name,email,mobileno,role,token from "user" where mobileno=$1 and isdeleted=0`)
+	if err != nil {
+		fmt.Println("Error in GetByUser Mobileno QueryRow :", err)
+		return userStruct, false
+	}
+	err = res.QueryRow(obj.Mobileno).Scan(&userStruct.Id,
 		&userStruct.Name,
 		&userStruct.Email,
 		&userStruct.Mobileno,
@@ -227,46 +230,47 @@ func (user *UserRepo) GetByUserMobileno(obj *models.User) (models.User, bool) {
 		&userStruct.Token)
 
 	if err != nil {
-		fmt.Println("Error in GetByUser Mobileno QueryRow :", err)
+		fmt.Println("Error in GetByUser Mobileno QueryRow Scan :", err)
 		return userStruct, false
 	}
 	return userStruct, true
 }
 
-func (user *UserRepo) UserverfiyMobileno(obj *models.UserverfiyMobileno) ( int64,bool, string) {
+func (user *UserRepo) Userverify(obj *models.Userverify) ( int64,bool, string) {
 	Db, isConnected := utls.OpenDbConnection()
 
 	if !isConnected {
-		fmt.Println("DB Disconnented in  UserverfiyMobileno Repo ")
+		fmt.Println("DB Disconnented in  Userverify Repo ")
 	}
-	query, err := Db.Query(`SELECT id,mobileno FROM "user" WHERE isdeleted=0`)
+	query, err := Db.Query(`SELECT id,mobileno,email FROM "user" WHERE isdeleted=0`)
 	if err != nil {
-		log.Println("Error in  UserverfiyMobileno  QueryRow :", err)
+		log.Println("Error in  Userverify QueryRow :", err)
 	}
+	fmt.Print(obj)
 	userStruct := models.User{}
 	otp := models.GenerateOtp()
 	for query.Next() {
-		query.Scan(&userStruct.Id,&userStruct.Mobileno)
+		query.Scan(&userStruct.Id,&userStruct.Mobileno,&userStruct.Email)
 
-		if obj.Mobileno == userStruct.Mobileno {
+		if obj.VerifyUser == userStruct.Mobileno || obj.VerifyUser == userStruct.Email{
 			obj.OTP = otp
-			query := `UPDATE "user"SET otppassword  =$2 WHERE mobileno=$1 and isdeleted=0`
+			query := `UPDATE "user"SET otppassword  =$2 WHERE id=$1 and isdeleted=0`
 
-			_, err := Db.Exec(query, &obj.Mobileno, &obj.OTP)
+			_, err := Db.Exec(query, &userStruct.Id, &obj.OTP)
 			if err != nil {
-				log.Println("Error in  UserverfiyMobileno Update Mobile Number QueryRow :", err)
+				log.Println("Error in  Userverify Update Mobile Number QueryRow :", err)
 				// missing  OTP SEND TO MOBILENUMBER
-				return userStruct.Id,false, "Error in  UserverfiyMobileno Update Mobile Number QueryRow"
-
+				return 0,false, "Invaild User"
 			}
-			fmt.Println(" Mobile number :", obj.Mobileno, obj.OTP)
+			fmt.Println(" userVerify DETAILS :", obj.VerifyUser)
+			fmt.Println("OTP :",obj.OTP)
 			return userStruct.Id,true, "Sucessfully Compeleted"
 		}
 	}
-	return userStruct.Id,false, "Check You Entered Mobile Number"
+	return 0,false, "Invaild User"
 }
 
-func (user *UserRepo) UserInvaildOtp(obj *models.UserverfiyMobileno) (models.UserPassword, bool, string) { 
+func (user *UserRepo) UserCheckOtp(obj *models.Userverify) (models.UserPassword, bool, string) { 
 	Db, conncet := utls.OpenDbConnection()
 	if !conncet {
 		fmt.Println("DB Disconnceted in User GetById ")
@@ -296,5 +300,7 @@ func (user *UserRepo) UserDelete(obj *models.User) (bool, string) {
 		fmt.Println("Error in User Delete QueryRow :", err)
 		return false, "User Delete Failed"
 	}
+	fmt.Println(err)
 	return true, "User Deleted Sucessfully Completed"
 }
+

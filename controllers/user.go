@@ -196,20 +196,20 @@ func (user *UserController) UserGetById(w http.ResponseWriter, r *http.Request) 
 	w.Write(resp)
 }
 
-func (user *UserController) UserverfiyMobileno(w http.ResponseWriter, r *http.Request) {
-	request := models.UserverfiyMobileno{}
+func (user *UserController) Userverfiy(w http.ResponseWriter, r *http.Request) {
+	request := models.Userverify{}
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		log.Println("Error in Decoding UserUpdatePassword Request :", err)
 	}
+	log.Println(request)
 
-	status := models.VerifyMobileno(request.Mobileno)
-	if !status {
+	if !models.VerifyMobileno(request.VerifyUser) && !models.VerifyEmail(request.VerifyUser)  {
 		response := models.CommanRespones{
 			Statuscode:  200,
-			Status:      status,
-			Descreption: "Check your Mobile Number",
+			Status:      false,
+			Descreption: "Check yourww Mobile Number Or Email",
 		}
 		resp, err := json.Marshal(response)
 
@@ -219,7 +219,7 @@ func (user *UserController) UserverfiyMobileno(w http.ResponseWriter, r *http.Re
 		w.Write(resp)
 	} else {
 		repo := repos.UserInterface(&repos.UserRepo{})
-		 value,status, descreption := repo.UserverfiyMobileno(&request)
+		 value,status, descreption := repo.Userverify(&request)
 		response := models.UserverfiyOtp{
 			Statuscode:  200,
 			Status:      status,
@@ -236,7 +236,7 @@ func (user *UserController) UserverfiyMobileno(w http.ResponseWriter, r *http.Re
 }
 
 func (user *UserController) UserCheckOtp(w http.ResponseWriter, r *http.Request) {
-	request := models.UserverfiyMobileno{}
+	request := models.Userverify{}
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
@@ -245,7 +245,7 @@ func (user *UserController) UserCheckOtp(w http.ResponseWriter, r *http.Request)
 
 	
 		repo := repos.UserInterface(&repos.UserRepo{})
-		value, status, descreption := repo.UserInvaildOtp(&request)
+		value, status, descreption := repo.UserCheckOtp(&request)
 		response := models.UserUpdatePassword{
 			Statuscode:  200,
 			Status:      status,

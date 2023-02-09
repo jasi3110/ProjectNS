@@ -109,3 +109,29 @@ func (sale *SaleController) GetUserReportByDateRange(w http.ResponseWriter, r *h
 	}
 	w.Write(resp)
 }
+
+func (sale *SaleController) SaleDelete(w http.ResponseWriter, r *http.Request) {
+	request := mux.Vars(r)
+	id, err := strconv.ParseInt(request["id"], 10, 64)
+	billid := models.Invoice{
+		Id: id,
+	}
+	if err != nil {
+		fmt.Println("Error in Decoding UserGetById Request :", err)
+	}
+	repo := repos.SaleInterface(&repos.SaleStruct{})
+
+	 status, descreption := repo.SaleDelete(&billid)
+	
+	response := models.CommanRespones{
+		Statuscode:  200,
+		Status:      status,
+		Descreption: descreption,
+	}
+	resp, err := json.Marshal(response)
+
+	if err != nil {
+		fmt.Println("Error in Marshal UserGetById Response :", err)
+	}
+	w.Write(resp)
+}

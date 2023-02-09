@@ -16,6 +16,7 @@ type SaleInterface interface {
 	SaleGetByBillid(obj *int64) (models.InvoiceBillById, bool, string)
 	GetUserReportByDateRange(obj *models.GetUserReportByDateRange) ([]models.InvoiceBillById, bool, string)
 	SaleGetByDate(obj *string) ([]models.InvoiceBillById, bool, string)
+	SaleDelete(obj *models.Invoice) (bool, string)
 }
 
 type SaleStruct struct {
@@ -69,16 +70,18 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 												productprice,
 												quantity,
 												createdon,
-												createdby)
-												values($1,$2,$3,$4,$5,$6,$7,$8)RETURNING id`,
+												createdby,
+												isdeleted)
+												values($1,$2,$3,$4,$5,$6,$7,$8,$9)RETURNING id`,
 			obj.CustomerId,
-			100001+obj.Id,
+			obj.Id,
 			obj.Id,
 			productItem.Id,
-			productItem.Mrp,
+			productItem.Price,
 			productItem.Quantity,
 			utls.GetCurrentDate(),
 			obj.CreatedBy,
+			0,
 		).Scan(&a)
 		fmt.Println("", a)
 		if err != nil {
@@ -93,14 +96,14 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 		log.Println("Sales Entry Added", productItem.Id)
 		productRepo := ProductInterface(&ProductStruct{})
 		value, status, _ := productRepo.GetProductById(&productItem.Id)
-		 
-		 productqty, _ := strconv.ParseFloat(value.Quantity, 32)
-		 productqty1,_:=strconv.ParseFloat(productItem.Quantity,32)
-		if productqty !=0  || status {
+
+		productqty, _ := strconv.ParseFloat(value.Quantity, 32)
+		productqty1, _ := strconv.ParseFloat(productItem.Quantity, 32)
+		if productqty != 0 || status {
 			//reduce stock quantity from product table
 			productqty = productqty - productqty1
-			quatity:=strconv.FormatFloat(productqty, 'E', -1, 64)
-			updateQueryqty, err := Txn.Query(`UPDATE  "product" SET  quantity=$1 WHERE id=$2`, quatity, productItem.Id)
+			quatity := strconv.FormatFloat(productqty, 'E', -1, 64)
+			updateQueryqty, err := Txn.Query(`UPDATE  "product" SET  quantity=$1 WHERE id=$2 and isdeleted=1`, quatity, productItem.Id)
 
 			if err != nil {
 				fmt.Println("Error in CreateSale in Product Update QueryRow  :", err)
@@ -139,7 +142,7 @@ func (sale *SaleStruct) InvoiceGetall() ([]models.Invoice, bool) {
 	invoiceStruct := models.Invoice{}
 	result := []models.Invoice{}
 
-	query, err := Db.Query(`SELECT id,billamount,customerid,createdon,createdby FROM "invoice"`)
+	query, err := Db.Query(`SELECT id,billamount,customerid,createdon,createdby FROM "invoice" where isdeleted=1`)
 	if err != nil {
 		log.Println(err)
 	}
@@ -182,7 +185,7 @@ func (sale *SaleStruct) SaleGetByBillid(obj *int64) (models.InvoiceBillById, boo
 											createdon,
 											createdby
 												FROM "saleentry"
-												WHERE billid = $1`, obj)
+												WHERE billid = $1 and isdeleted=1`, obj)
 	if err != nil {
 		fmt.Println("Error in SaleGetByBillid QueryRow :", err)
 		return result, false, "Failed"
@@ -334,4 +337,48 @@ func (sale *SaleStruct) SaleGetByDate(obj *string) ([]models.InvoiceBillById, bo
 
 	fmt.Println("", result)
 	return res, true, "Sucessfully Completed"
+}
+
+func (sale *SaleStruct) SaleDelete(obj *models.Invoice) (bool, string) {
+	Db, isconnceted := utls.OpenDbConnection()
+	if !isconnceted {
+		fmt.Println("DB disconnceted in SaleDelete ")
+	}
+	txn, err := Db.Begin()
+	if err != nil {
+		fmt.Println("Error in SaleDelete Transacation in DB :", err)
+		return false, "DELETETSALE FAILED"
+	}
+	err = txn.QueryRow(`UPDATE "invoice" SET isdeleted=1  WHERE id=$1 `, obj.Id).Scan(&obj.BillId)
+
+	if err != nil {
+		fmt.Println("Error in Delete Invoice QueryRow  :", err)
+		err := txn.Rollback()
+		if err != nil {
+			fmt.Println("Error in Delete Invioce Rollback :", err)
+		}
+		return false, "CREATESALE FAILED"
+	}
+
+	if err != nil {
+		fmt.Println("Error in Delete Invioce QueryRow Close :", err)
+	}
+
+	DeleteQuerySaleEntry, err := txn.Query(`UPDATE "saleentry" SET isdeleted=1  WHERE billid=$1`, obj.BillId)
+	for DeleteQuerySaleEntry.Next() {
+		if err != nil {
+			fmt.Println("Error in Delete SaleEntry QueryRow  :", err)
+			err = txn.Rollback()
+			if err != nil {
+				fmt.Println("Error in Delete SaleEntry Rollback :", err)
+			}
+			return false, "CREATESALE FAILED"
+		}
+		err = DeleteQuerySaleEntry.Close()
+		if err != nil {
+			fmt.Println("Error in Delete SaleEntry QueryRow Close :", err)
+		}
+	}
+	txn.Commit()
+	return true, "User Deleted Sucessfully Completed"
 }

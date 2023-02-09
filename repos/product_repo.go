@@ -112,6 +112,7 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.ProductAll, boo
 	// catid:=3
 	productStruct := models.ProductAll{}
 	query, _ := Db.Prepare(`SELECT id,
+								   image,
 								   name,
 								   category,
 								   coalesce( (select name from category where id = category) ) as category,
@@ -121,6 +122,7 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.ProductAll, boo
 								   price,
 								   createdon from "product" where id=$1`)
 	err := query.QueryRow(obj).Scan(&productStruct.Id,
+		&productStruct.Image,
 		&productStruct.Name,
 		&productStruct.Category.Id,
 		&productStruct.Category.Name,
@@ -153,7 +155,7 @@ func (product *ProductStruct) ProductGetAll() ([]models.ProductAll, bool, string
 	result := []models.ProductAll{}
 	productStruct := models.Product{}
 
-	query, err := Db.Query(`SELECT id FROM "product"`)
+	query, err := Db.Query(`SELECT id FROM "product" WHERE isdiscount=0 and isdeleted=0`)
 	if err != nil {
 		log.Println(err)
 	}

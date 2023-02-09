@@ -15,7 +15,7 @@ import (
 type AppClaims struct {
 	UserId   int64
 	Mobileno string
-	Name     string
+	Email     string
 	jwt.StandardClaims
 }
 
@@ -65,14 +65,14 @@ func initKeys() {
 
 }
 
-func GenerateJwtToken(id int64, mobileno, name string) string {
+func GenerateJwtToken(id int64, mobileno, email string) string {
 	//create Claims
 	claims := AppClaims{
 		UserId:   id,
 		Mobileno: mobileno,
-		Name:     name,
+		Email:     email,
 		StandardClaims: jwt.StandardClaims{
-			Issuer: "OnlineShopAdmin",
+			Issuer:"OnlineShopAdmin",
 		},
 	}
 	//create a signer using RSA256 key

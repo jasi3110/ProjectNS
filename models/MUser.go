@@ -50,10 +50,10 @@ type UserUpdateResponseModel struct {
 }
 
 type UserUpdatePasswordOtp struct {
-	Statuscode  int64              `json:"statuscode"`
-	Status      bool               `json:"status"`
-	Value       UserverfiyMobileno `json:"userdetails"`
-	Descreption string             `json:"desc"`
+	Statuscode  int64      `json:"statuscode"`
+	Status      bool       `json:"status"`
+	Value       Userverify `json:"userdetails"`
+	Descreption string     `json:"desc"`
 }
 
 type UserUpdatePassword struct {
@@ -63,10 +63,10 @@ type UserUpdatePassword struct {
 	Descreption string       `json:"desc"`
 }
 
-type UserverfiyMobileno struct {
-	Id       int64 `json:"id"`
-	Mobileno string `json:"mobileno"`
-	OTP      string `json:"otp"`
+type Userverify struct {
+	Id         int64  `json:"id"`
+	VerifyUser string `json:"verifyuser"`
+	OTP        string `json:"otp"`
 }
 
 type UserverfiyOtp struct {
