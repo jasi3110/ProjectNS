@@ -19,6 +19,6 @@ type RDiscount struct {
 type GetAllDiscountResponse struct {
 	Statuscode  int64        `json:"statuscode"`
 	Status      bool         `json:"status"`
-	Value       []ProductAll `json:"discountdata"`
+	Value       [] ProductAll `json:"discountdata"`
 	Descreption string       `json:"desc"`
 }

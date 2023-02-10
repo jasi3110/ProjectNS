@@ -3,12 +3,10 @@ package masters
 import (
 	"OnlineShop/models"
 	"OnlineShop/repos"
-	masterrepo "OnlineShop/repos/masterRepo"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
-
 	"github.com/gorilla/mux"
 )
 
@@ -36,13 +34,13 @@ func (discount *DiscountController) DiscountCreate(w http.ResponseWriter, r *htt
 }
 
 func (discount *DiscountController) DiscountUpdate(w http.ResponseWriter, r *http.Request) {
-	request:= models.Role{}
+	request:= models.RDiscount{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		fmt.Println("Error in Decoding RoleUpdate Request :", err)
 	}
-	Repo := masterrepo.RoleInterface(&masterrepo.RoleStruct{})
-	descreption, status := Repo.RoleUpdate(&request)
+	Repo := repos.DiscountInterface(&repos.DiscountStruct{})
+	status,descreption:= Repo.DiscountUpdate(&request)
 	response := models.CommanRespones{
 		Statuscode:  200,
 		Status:      status,
@@ -58,19 +56,17 @@ func (discount *DiscountController) DiscountUpdate(w http.ResponseWriter, r *htt
 func (discount *DiscountController) DiscountGetById(w http.ResponseWriter, r *http.Request) {
 	request := mux.Vars(r)
 	id, err := strconv.ParseInt(request["id"], 10, 64)
-	roleid := strconv.FormatInt(id, 10)
+	
 	if err != nil {
-		fmt.Println("Error in Decoding RoleGetById Request :", err)
+		fmt.Println("Error in Decoding Discount Product GetById Request :", err)
 	}
-	roleStruct := models.Role{
-		Id: roleid,
-	}
+	
 	if err != nil {
 		fmt.Println(err)
 	}
-	repo := masterrepo.RoleInterface(&masterrepo.RoleStruct{})
-	value, status, descreption := repo.RoleById(&roleStruct)
-	response := models.RoleResponses{
+	Repo := repos.DiscountInterface(&repos.DiscountStruct{})
+	value,status,descreption := Repo.DiscountById(&id)
+	response := models.ProductResponses{
 		Statuscode:  200,
 		Status:      status,
 		Value:       value,
@@ -78,7 +74,7 @@ func (discount *DiscountController) DiscountGetById(w http.ResponseWriter, r *ht
 	}
 	respone, err := json.Marshal(response)
 	if err != nil {
-		fmt.Println("Error in Marshal RoleGetById Response :", err)
+		fmt.Println("Error in Marshal Discpunt Product GetById Response :", err)
 	}
 	w.Write(respone)
 }
@@ -100,5 +96,3 @@ func (discount *DiscountController) DiscountGetAll(w http.ResponseWriter, r *htt
 	}
 	w.Write(respone)
 }
-
-

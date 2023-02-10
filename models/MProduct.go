@@ -19,7 +19,7 @@ type ProductAll struct {
 	Category  Category `json:"category"`
 	Quantity  string   `json:"quantity"`
 	Unit      Unit     `json:"unit"`
-	Percentage int64    `json:"precentage"`
+	Percentage int64    `json:"percentage"`
 	Price     Price    `json:"price"`
 	CreatedOn string   `json:"createdon"`
 }
