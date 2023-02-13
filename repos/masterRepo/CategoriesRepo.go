@@ -8,9 +8,14 @@ import (
 
 type CategoryInterface interface {
 	CreateCategory(obj *models.Category) (bool, string)
+	CategoryUpdate(obj *models.Category) (models.Category, string, bool)
+	CategoryDelete(obj *models.User) (bool, string)
+
+
 	CategoryById(obj *models.Category) (models.Category, bool, string)
 	CategoryGetAll() ([]models.Category, bool, string)
-	CategoryUpdate(obj *models.Category) (models.Category, string, bool)
+	CategoryGetAllbyid() ([]models.Category, bool, string) 
+	
 }
 type CategoryStruct struct {
 }
@@ -26,24 +31,46 @@ func (category *CategoryStruct) CreateCategory(obj *models.Category) (bool, stri
 		fmt.Println("Error in Create Category QueryRow :", err)
 		return false, " Create Category Failed "
 	}
-	return true, "Category Sucessfully Created"
+	defer Db.Close()
+	return true, "Category Successfully Created"
 }
+
+
 
 func (category *CategoryStruct) CategoryUpdate(obj *models.Category) (models.Category, string, bool) {
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
 		fmt.Println("DB Disconnceted in Category Update")
 	}
-
-	query:= `UPDATE "category" SET name=$2 WHERE id=$1`
-	_, err := Db.Exec(query, &obj.Id, &obj.Name)
-
+	err :=Db.QueryRow(`UPDATE "category" SET name=$2 WHERE id=$1 AND isdeleted=0`,
+	&obj.Id, &obj.Name)
+	
 	if err != nil {
 		fmt.Println("Error in Category Upadte QueryRow :", err)
 		return *obj, "Update Failed", false
 	}
-	return *obj, "Sucessfully Updated", true
+	defer Db.Close()
+	return *obj, "Successfully Updated", true
 }
+
+
+
+func (category *CategoryStruct) CategoryDelete(obj *models.User) (bool, string) {
+	Db, isconnceted := utls.OpenDbConnection()
+	if !isconnceted {
+		fmt.Println("DB disconnceted in Category Delete ")
+	}
+	err :=Db.QueryRow( `UPDATE "category" SET isdeleted=1 WHERE id=$1 and isdeleted=0`,&obj.Id)
+	
+	if err != nil {
+		fmt.Println("Error in category Delete QueryRow :", err)
+		return false, "Failed"
+	}
+	defer Db.Close()
+	return true, "Category Successfully Completed"
+}
+
+
 
 func (category *CategoryStruct) CategoryById(obj *models.Category) (models.Category, bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
@@ -52,16 +79,22 @@ func (category *CategoryStruct) CategoryById(obj *models.Category) (models.Categ
 	}
 	categoryStruct := models.Category{}
 
-	query, _ := Db.Prepare(`SELECT id,name from "category" where id=$1`)
-
-	err := query.QueryRow(obj.Id).Scan(&categoryStruct.Id, &categoryStruct.Name)
-
+	query, err:= Db.Prepare(`SELECT id,name from "category" where id=$1`)
 	if err != nil {
 		fmt.Println("Error in Category GetById QueryRow :", err)
-		return categoryStruct, false, "Error is founded in category get by id"
+		return categoryStruct, false, "Failed"
 	}
-	return categoryStruct, true, "category get id successfully"
+	err = query.QueryRow(obj.Id).Scan(&categoryStruct.Id, &categoryStruct.Name)
+
+	if err != nil {
+		fmt.Println("Error in Category GetById QueryRow Scan:", err)
+		return categoryStruct, false, "Failed"
+	}
+	defer Db.Close()
+	return categoryStruct, true, "successfully Completed"
 }
+
+
 
 func (category *CategoryStruct) CategoryGetAll() ([]models.Category, bool, string) {
 	Db, isConnected := utls.CreateDbConnection()
@@ -71,9 +104,10 @@ func (category *CategoryStruct) CategoryGetAll() ([]models.Category, bool, strin
 	result := []models.Category{}
 	categoryStruct:=models.Category{}
 
-	query, err := Db.Query(`SELECT id,name FROM "category"`)
+	query, err := Db.Query(`SELECT id,name FROM "category"WHERE isdeleted=0`)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error in Category GetAll QueryRow :", err)
+		return result, false, "Failed"
 	}
 
 	for query.Next() {
@@ -82,13 +116,15 @@ func (category *CategoryStruct) CategoryGetAll() ([]models.Category, bool, strin
 			&categoryStruct.Name,
 		)
 		if err != nil {
-			fmt.Println("Error in Category GetAll QueryRow :", err)
-			return result, false, "failed to  Get All Category Data"
+			fmt.Println("Error in Category GetAll QueryRow Scan :", err)
+			return result, false, "Failed"
 		}
 		result = append(result, categoryStruct )
 	}
-	return result, true, "sucessfully Completed"
+	defer Db.Close()
+	return result, true, "successfully Completed"
 }
+
 
 
 func (category *CategoryStruct) CategoryGetAllbyid() ([]models.Category, bool, string) {
@@ -99,9 +135,10 @@ func (category *CategoryStruct) CategoryGetAllbyid() ([]models.Category, bool, s
 	result := []models.Category{}
 	categoryStruct:=models.Category{}
 
-	query, err := Db.Query(`SELECT id,name FROM "category"`)
+	query, err := Db.Query(`SELECT id,name FROM "category" WHERE isdeleted=0`)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error in Category GetAll QueryRow :", err)
+		return result, false, "Failed"
 	}
 
 	for query.Next() {
@@ -111,9 +148,10 @@ func (category *CategoryStruct) CategoryGetAllbyid() ([]models.Category, bool, s
 		)
 		if err != nil {
 			fmt.Println("Error in Category GetAll QueryRow :", err)
-			return result, false, "failed to  Get All Category Data"
+			return result, false, "Failed"
 		}
 		result = append(result, categoryStruct )
 	}
-	return result, true, "sucessfully Completed"
+	defer Db.Close()
+	return result, true, "successfully Completed"
 }

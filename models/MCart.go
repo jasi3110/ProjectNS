@@ -1,9 +1,11 @@
 package models
 
 type Cart struct {
-	Id      int64      `json:"id"`
-	Product ProductAll `json:"productdata"`
-	Total   int64      `json:"total"`
+	Id               int64      `json:"id"`
+	Product          ProductAll `json:"productdata"`
+	Items            int64      `json:"items"`
+	Productdiscoiunt float64    `json:"productdiscount"`
+	Total            float64    `json:"total"`
 }
 
 type RCart struct {

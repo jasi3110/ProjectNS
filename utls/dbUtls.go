@@ -27,18 +27,18 @@ func CreateDbConnection() (*sql.DB, bool) {
 }
 
 func OpenDbConnection() (*sql.DB, bool) {
-	// const (
-	// 	host     = "localhost"
-	// 	port     = 5432
-	// 	user     = "postgres"
-	// 	password = "root"
-	// 	dbname   = "postgres"
-	// )
-	// psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-	// 	"password=%s dbname=%s sslmode=disable",
-	// 	host, port, user, password, dbname)
+	const (
+		host     = "localhost"
+		port     = 5432
+		user     = "postgres"
+		password = "root"
+		dbname   = "postgres"
+	)
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
 
-	myDb, err := sql.Open("postgres", Config.ConnectionString)
+	myDb, err := sql.Open("postgres", psqlInfo)
 
 	if err != nil {
 		fmt.Println("Db Open Failed:", err)

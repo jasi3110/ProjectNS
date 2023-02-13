@@ -4,14 +4,14 @@ import (
 	"OnlineShop/models"
 	"OnlineShop/utls"
 	"fmt"
-	
+	"strconv"
 )
 
 type CartInterface interface {
 	Createcart(obj *models.RCart) (bool, string)
-	// CartById(obj *models.Cart) (models.Cart, bool, string)
+	CartUpdate(obj *models.RCart) (string, bool)
 	CartGetAll(obj *int64) ([]models.Cart, bool, string)
-	// CartUpdate(obj *models.Cart) (models.Cart, string, bool)
+	CartDelete(obj *models.User) (bool, string)
 }
 type CartStruct struct {
 }
@@ -31,39 +31,25 @@ func (cart *CartStruct) Createcart(obj *models.RCart) (bool, string) {
 	return true, "cart Successfully Created"
 }
 
-// func (cart *CartStruct) cartUpdate(obj *models.RCart) (string, bool) {
-// 	Db, isconnceted := utls.OpenDbConnection()
-// 	if !isconnceted {
-// 		fmt.Println("DB Disconnceted in cart Update")
-// 	}
 
-// 	query:= `UPDATE "cart" SET quantity=$2 WHERE productid=$1`
-// 	_, err := Db.Exec(query, &obj.Productid, &obj.Quantity)
 
-// 	if err != nil {
-// 		fmt.Println("Error in cart Upadte QueryRow :", err)
-// 		return  "Update Failed", false
-// 	}
-// 	return "Successfully Updated", true
-// }
+func (cart *CartStruct) CartUpdate(obj *models.RCart) (string, bool) {
+	Db, isconnceted := utls.OpenDbConnection()
+	if !isconnceted {
+		fmt.Println("DB Disconnceted in cart Update")
+	}
+	err :=Db.QueryRow(`UPDATE "cart" SET quantity=$3 WHERE productid=$2 AND customerid=$1`,
+	&obj.Id,&obj.Productid, &obj.Quantity)
 
-// func (cart *CartStruct) cartById(obj *models.RCart) (models.Cart, bool, string) {
-	// Db, isconnceted := utls.OpenDbConnection()
-	// if !isconnceted {
-	// 	fmt.Println("DB Disconnceted in cart GetById")
-	// }
-	// cartStruct := models.Cart{}
+	if err != nil {
+		fmt.Println("Error in cart Upadte QueryRow :", err)
+		return  "Update Failed", false
+	}
+	defer Db.Close()
+	return "Successfully Updated", true
+}
 
-	// query, _ := Db.Prepare(`SELECT customerid,productid,quantity, from "cart" where id=$1`)
 
-	// err := query.QueryRow(obj.Id).Scan(&obj.Id, &obj.Productid,obj.Quantity)
-
-	// if err != nil {
-	// 	fmt.Println("Error in cart GetById QueryRow :", err)
-	// 	return cartStruct, false, "Error is founded in cart get by id"
-	// }
-	// return cartStruct, true, "cart get id successfully"
-// }
 
 func (cart *CartStruct) CartGetAll(obj *int64) ([]models.Cart, bool, string) {
 	Db, isConnected := utls.CreateDbConnection()
@@ -91,42 +77,35 @@ func (cart *CartStruct) CartGetAll(obj *int64) ([]models.Cart, bool, string) {
 value,status,descreption:=productRepo.GetProductById(&cartStruct.Product.Id)
 value.Quantity = cartStruct.Product.Quantity
 cartStruct.Product = value
-// quantity := value.Quantity
 
-cartStruct.Total = cartStruct.Total + value.Price.Nop
+productqty, _ := strconv.ParseFloat(value.Quantity, 32)
+
+
+cartStruct.Total = cartStruct.Total + (value.Price.Nop*productqty)
+cartStruct.Items  = cartStruct.Items + 1
+cartStruct.Productdiscoiunt =cartStruct.Productdiscoiunt + (value.Price.Mrp + value.Price.Nop)
 if !status {
 	fmt.Println(descreption)
 	return result, false, descreption
 }
 		result = append(result, cartStruct)
 	}
+	defer Db.Close()
 	return result, true, "sucessfully Completed"
 }
 
 
-// func (cart *CartStruct) cartGetAllbyid() ([]models.Cart, bool, string) {
-// 	Db, isConnected := utls.CreateDbConnection()
-// 	if !isConnected {
-// 		fmt.Println("DB Disconnceted in cart GetAll")
-// 	}
-// 	result := []models.Cart{}
-// 	cartStruct:=models.Cart{}
-
-// 	query, err := Db.Query(`SELECT id,name FROM "cart"`)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-
-// 	for query.Next() {
-// 		err := query.Scan(
-// 			&cartStruct.Id,
-// 			&cartStruct.Name,
-// 		)
-// 		if err != nil {
-// 			fmt.Println("Error in cart GetAll QueryRow :", err)
-// 			return result, false, "failed to  Get All cart Data"
-// 		}
-// 		result = append(result, cartStruct )
-// 	}
-// 	return result, true, "sucessfully Completed"
-// }
+func (cart *CartStruct) CartDelete(obj *models.User) (bool, string) {
+	Db, isconnceted := utls.OpenDbConnection()
+	if !isconnceted {
+		fmt.Println("DB disconnceted in Product Delete ")
+	}
+	err :=Db.QueryRow( `DELETE "cart"  WHERE id=$1 `,&obj.Id)
+	
+	if err != nil {
+		fmt.Println("Error in Cart Delete QueryRow :", err)
+		return false, "Cart Delete Failed"
+	}
+	defer Db.Close()
+	return true, "Cart Deleted Successfully "
+}

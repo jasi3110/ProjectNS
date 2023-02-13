@@ -3,7 +3,7 @@ package models
 type Discount struct {
 	Id         int64      `json:"id"`
 	Product    ProductAll `json:"productid"`
-	Percentage int64      `json:"percentage"`
+	Percentage float64      `json:"percentage"`
 	Mrp        int64      `json:"mrp"`
 	Nop        int64      `json:"nop"`
 	Startend   string     `json:"startend"`
@@ -12,7 +12,7 @@ type Discount struct {
 
 type RDiscount struct {
 	Id         int64  `json:"id"`
-	Percentage int64  `json:"percentage"`
+	Percentage float64  `json:"percentage"`
 	Enddate    string `json:"enddate"`
 }
 

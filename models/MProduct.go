@@ -8,8 +8,8 @@ type Product struct {
 	Quantity  string `json:"quantity"`
 	Unit      int64  `json:"unit"`
 	Price     int64  `json:"price"`
-	Mrp       int64  `json:"mrp"`
-	Nop       int64  `json:"nop"`
+	Mrp       float64  `json:"mrp"`
+	Nop       float64  `json:"nop"`
 	CreatedOn string `json:"createdon"`
 }
 type ProductAll struct {
