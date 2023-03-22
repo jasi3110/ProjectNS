@@ -12,8 +12,14 @@ import (
 
 type SaleInterface interface {
 	CreateSale(Obj *models.Invoice) (bool, string, models.Invoice)
+
+	// INVOICE
 	InvoiceGetall() ([]models.Invoice, bool)
+	InvoiceGetallByCustomerid(obj *int64) ([]models.Invoice, bool)
+
+	// SALE ENTRY
 	SaleGetByBillid(obj *int64) (models.InvoiceBillById, bool, string)
+	SaleGetByCustomerid(obj *int64) (models.InvoiceBillById, bool, string)
 	GetUserReportByDateRange(obj *models.GetUserReportByDateRange) ([]models.InvoiceBillById, bool, string)
 	SaleGetByDate(obj *string) ([]models.InvoiceBillById, bool, string)
 	SaleDelete(obj *models.Invoice) (bool, string)
@@ -33,7 +39,7 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 	Txn, err := Db.Begin()
 	if err != nil {
 		fmt.Println("Error in CreateSale Transacation in DB :", err)
-		return false, "CREATESALE FAILED", *obj
+		return false, "CREATE SALE FAILED", *obj
 	}
 
 	//write invoice
@@ -41,12 +47,14 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 												billamount,
 												customerid,
 												createdon,
-												createdby)
-												values($1,$2,$3,$4)RETURNING id`,
+												createdby,
+												items)
+												values($1,$2,$3,$4,$5)RETURNING id`,
 		obj.BillAmount,
 		obj.CustomerId,
 		utls.GetCurrentDate(),
 		obj.CreatedBy,
+		obj.Items,
 	).Scan(&obj.Id)
 
 	log.Println("invoice created:", obj.Id)
@@ -57,11 +65,11 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 		if err != nil {
 			fmt.Println("Error in CreateSale Rollback in Invoice :", err)
 		}
-		return false, "CREATESALE FAILED", *obj
+		return false, "CREATE SALE FAILED", *obj
 	}
 	//write sales entry data from array
 
-	for _, productItem := range obj.Items {
+	for _, productItem := range obj.Products {
 
 		err := Txn.QueryRow(`INSERT into "saleentry"(customerid,
 												billid,
@@ -85,15 +93,14 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 		).Scan(&a)
 		fmt.Println("", a)
 		if err != nil {
-			fmt.Println("Error in CreateSale SaleEntry QueryRow :", err)
+			fmt.Println("Error in CreateSale SaleEntry QueryRow Scan :", err)
 			err := Txn.Rollback()
 			if err != nil {
 				fmt.Println("Error in CreateSale Rollback in SaleEntry :", err)
 			}
-			return false, "CREATESALE FAILED", *obj
+			return false, "CREATE SALE FAILED", *obj
 		}
 
-		log.Println("Sales Entry Added", productItem.Id)
 		productRepo := ProductInterface(&ProductStruct{})
 		value, status, _ := productRepo.GetProductById(&productItem.Id)
 
@@ -103,7 +110,8 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 			//reduce stock quantity from product table
 			productqty = productqty - productqty1
 			quatity := strconv.FormatFloat(productqty, 'E', -1, 64)
-			updateQueryqty, err := Txn.Query(`UPDATE  "product" SET  quantity=$1 WHERE id=$2 and isdeleted=1`, quatity, productItem.Id)
+			updateQueryqty, err := Txn.Query(`UPDATE  "product" SET  quantity=$1 WHERE id=$2 and isdeleted=1`, 
+			quatity, productItem.Id)
 
 			if err != nil {
 				fmt.Println("Error in CreateSale in Product Update QueryRow  :", err)
@@ -111,7 +119,7 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 				if err != nil {
 					fmt.Println("Error in CreateSale Rollback in Product Update QueryRow :", err)
 				}
-				return false, "CREATESALE FAILED", *obj
+				return false, "CREATE SALE FAILED", *obj
 			}
 			err = updateQueryqty.Close()
 			if err != nil {
@@ -127,12 +135,14 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 			if err != nil {
 				fmt.Println("Error in CreateSale Rollback in Product Update :", err)
 			}
-			return false, "CREATESALE FAILED", *obj
+			return false, "CREATE SALE FAILED", *obj
 		}
 	}
-	fmt.Println("last error :", err)
-	return true, "CREATESALE SUCESSFULLY COMPLETED", *obj
+	defer Db.Close()
+	return true, "CREATE SALE SUCCESSFULLY COMPLETED", *obj
 }
+
+
 
 func (sale *SaleStruct) InvoiceGetall() ([]models.Invoice, bool) {
 	Db, isConnected := utls.OpenDbConnection()
@@ -164,6 +174,108 @@ func (sale *SaleStruct) InvoiceGetall() ([]models.Invoice, bool) {
 
 	return result, true
 }
+
+
+
+func (sale *SaleStruct) InvoiceGetallByCustomerid(obj *int64) ([]models.Invoice, bool) {
+	Db, isConnected := utls.OpenDbConnection()
+	if !isConnected {
+		fmt.Println("DB Disconnceted in invoice Getall")
+	}
+	invoiceStruct := models.Invoice{}
+	result := []models.Invoice{}
+
+	query, err := Db.Query(`SELECT id,billamount,customerid,createdon,items createdby FROM "invoice" where customerid=1 and isdeleted=1`)
+	if err != nil {
+		log.Println(err)
+		return result, false
+	}
+	fmt.Println("",obj)
+fmt.Println("c",obj,invoiceStruct,result)
+	for query.Next() {
+		err = query.Scan(
+			&invoiceStruct.Id,
+			&invoiceStruct.BillAmount,
+			&invoiceStruct.CustomerId,
+			&invoiceStruct.CreatedOn,
+			&invoiceStruct.CreatedBy,
+			&invoiceStruct.Items,
+		)
+		fmt.Println("",invoiceStruct)
+		if err != nil {
+			fmt.Println("Error in User GetAll QueryRow :", err)
+			return result, false
+		}
+		result = append(result, invoiceStruct)
+	}
+
+	return result, true
+}
+
+
+func (sale *SaleStruct) SaleGetByCustomerid(obj *int64) (models.InvoiceBillById, bool, string) {
+	Db, isconnceted := utls.OpenDbConnection()
+
+	result := models.InvoiceBillById{}
+	productStruct := models.ProductAll{}
+
+	if !isconnceted {
+		fmt.Println("DB is Disconnceted in SaleGetByBillid")
+		return result, false, "Failed"
+	}
+
+	query, err := Db.Query(`SELECT          id,
+											customerid,
+											billid,
+											productid,
+											productprice,
+											quantity,
+											createdon,
+											createdby
+												FROM "saleentry"
+												WHERE customerid= $1 and isdeleted=1`, obj)
+	if err != nil {
+		fmt.Println("Error in SaleGetByBillid QueryRow :", err)
+		return result, false, "Failed"
+	}
+	for query.Next() {
+		err := query.Scan(&result.Id,
+			&result.CustomerId,
+			&result.BillId,
+			&productStruct.Id,
+			&productStruct.Price.Id,
+			&productStruct.Quantity,
+			&result.CreatedOn,
+			&result.CreatedBy,
+		)
+		if err != nil {
+			fmt.Println("Error in SaleGetByBillid QueryRow :", err)
+			return result, false, "Failed"
+		}
+		productRepo := ProductInterface(&ProductStruct{})
+		value, status, descreption := productRepo.GetProductById(&productStruct.Id)
+		if !status {
+			fmt.Println(descreption)
+			return result, false, "Failed"
+		}
+		priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
+		valueprice, statusprice, descreptionprice := priceRepo.PriceById(&productStruct.Price)
+		if !statusprice {
+			fmt.Println(descreptionprice)
+			return result, false, "Failed"
+		}
+		value.Price.Mrp = valueprice.Mrp
+		value.Price.Nop = valueprice.Nop
+		value.Quantity = productStruct.Quantity
+		result.Products = append(result.Products, value)
+
+	}
+	fmt.Println("", result)
+	return result, true, "Sucessfully Completed"
+}
+
+
+
 
 func (sale *SaleStruct) SaleGetByBillid(obj *int64) (models.InvoiceBillById, bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
@@ -219,12 +331,15 @@ func (sale *SaleStruct) SaleGetByBillid(obj *int64) (models.InvoiceBillById, boo
 		value.Price.Mrp = valueprice.Mrp
 		value.Price.Nop = valueprice.Nop
 		value.Quantity = productStruct.Quantity
-		result.Items = append(result.Items, value)
+		result.Products = append(result.Products, value)
 
 	}
 	fmt.Println("", result)
-	return result, true, "Sucessfully Completed"
+	return result, true, "Successfully Completed"
 }
+
+
+
 
 func (sale *SaleStruct) GetUserReportByDateRange(obj *models.GetUserReportByDateRange) ([]models.InvoiceBillById, bool, string) {
 
@@ -269,7 +384,7 @@ func (sale *SaleStruct) GetUserReportByDateRange(obj *models.GetUserReportByDate
 			fmt.Println(descreption)
 			return res, false, "Failed"
 		}
-		result.Items = append(result.Items, value.Items...)
+		result.Products = append(result.Products, value.Products...)
 		res = append(res, result)
 	}
 	return res, true, "Successfully Completed"
@@ -329,7 +444,7 @@ func (sale *SaleStruct) SaleGetByDate(obj *string) ([]models.InvoiceBillById, bo
 		value.Price.Mrp = valueprice.Mrp
 		value.Price.Nop = valueprice.Nop
 		value.Quantity = productStruct.Quantity
-		result.Items = append(result.Items, value)
+		result.Products = append(result.Products, value)
 		res := append(res, result)
 
 		fmt.Println("", res)

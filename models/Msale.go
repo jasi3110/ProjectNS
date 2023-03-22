@@ -2,22 +2,24 @@ package models
 
 type Invoice struct {
 	Id         int64     `json:"id"`
-	Items      []Product `json:"items"`
+	Products   []Product `json:"products"`
 	BillAmount int64     `json:"billamount"`
 	BillId     int64     `json:"billid"`
 	CustomerId int64     `json:"customerid"`
 	CreatedOn  string    `json:"createdon"`
 	CreatedBy  int64     `json:"createdby"`
+	Items       int64     `json:"items"`
 }
 
 type InvoiceBillById struct {
 	Id         int64        `json:"id"`
-	Items      []ProductAll `json:"items"`
+	Products   []ProductAll `json:"products"`
 	BillAmount int64        `json:"billamount"`
 	BillId     int64        `json:"billid"`
 	CustomerId int64        `json:"customerid"`
 	CreatedOn  string       `json:"createdon"`
 	CreatedBy  int64        `json:"createdby"`
+	Items      int64        `json:"items"`
 }
 
 type SaleCommanRespones struct {
@@ -35,15 +37,15 @@ type GetAllSaleInvoiceResponse struct {
 }
 
 type GetAllSaleInvoiceGetByBillIdResponse struct {
-	Statuscode  int64             `json:"statuscode"`
-	Status      bool              `json:"result"`
+	Statuscode  int64           `json:"statuscode"`
+	Status      bool            `json:"result"`
 	Value       InvoiceBillById `json:"data"`
-	Descreption string            `json:"desc"`
+	Descreption string          `json:"desc"`
 }
 
-type  GetUserReportByDateRange struct{
+type GetUserReportByDateRange struct {
 	FromDate string `json:"fromdate"`
-	ToDate string `json:"todate"`
+	ToDate   string `json:"todate"`
 }
 
 type GetAllSaleInvoiceByDateRangeResponse struct {

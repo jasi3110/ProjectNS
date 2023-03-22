@@ -196,7 +196,7 @@ func (user *UserRepo) UserGetById(obj *models.User) (models.User, bool, string) 
 		fmt.Println("DB Disconnceted in User GetById ")
 	}
 	userStruct := models.User{}
-
+fmt.Println("",obj)
 	query, _ := Db.Prepare(`SELECT id,name,email,mobileno,role,token,createdon from "user" where id=$1`)
 
 	err := query.QueryRow(obj.Id).Scan(&userStruct.Id,

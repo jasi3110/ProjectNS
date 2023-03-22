@@ -56,6 +56,27 @@ func (sale *SaleController) SaleInvoiceGetAll(w http.ResponseWriter, r *http.Req
 	w.Write(resp)
 }
 
+func (sale *SaleController) InvoiceGetallByCustomerid(w http.ResponseWriter, r *http.Request) {
+	request := mux.Vars(r)
+	id, err := strconv.ParseInt(request["id"], 10, 64)
+	if err != nil {
+		fmt.Println("Error in Decoding SaleGetAll Request :", err)
+	}
+	Repo := repos.SaleInterface(&repos.SaleStruct{})
+	value, status:= Repo.InvoiceGetallByCustomerid(&id)
+	response := models.GetAllSaleInvoiceResponse{
+		Statuscode:  200,
+		Status:      status,
+		Value:       value,
+		Descreption:"ssvs",
+	}
+	resp, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println("Error in Marshal SaleGetAll Request :", err)
+	}
+	w.Write(resp)
+}
+
 func (sale *SaleController) SaleGetByBillId(w http.ResponseWriter, r *http.Request) {
 
 	request := mux.Vars(r)
@@ -67,6 +88,31 @@ func (sale *SaleController) SaleGetByBillId(w http.ResponseWriter, r *http.Reque
 	repo := repos.SaleInterface(&repos.SaleStruct{})
 
 	value, status, descreption := repo.SaleGetByBillid(&id)
+	
+	response := models. GetAllSaleInvoiceGetByBillIdResponse{
+		Statuscode:  200,
+		Status:      status,
+		Value:       value,
+		Descreption: descreption,
+	}
+	resp, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println("Error in Marshal ProductGetById response :", err)
+	}
+	w.Write(resp)
+}
+
+func (sale *SaleController) SaleGetByCustomerid(w http.ResponseWriter, r *http.Request) {
+
+	request := mux.Vars(r)
+	id, err := strconv.ParseInt(request["id"], 10, 64)
+
+	if err != nil {
+		fmt.Println("Error in Decoding SaleGetByBillId Request :", err)
+	}
+	repo := repos.SaleInterface(&repos.SaleStruct{})
+
+	value, status, descreption := repo.SaleGetByCustomerid(&id)
 	
 	response := models. GetAllSaleInvoiceGetByBillIdResponse{
 		Statuscode:  200,

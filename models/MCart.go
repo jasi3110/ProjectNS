@@ -3,9 +3,7 @@ package models
 type Cart struct {
 	Id               int64      `json:"id"`
 	Product          ProductAll `json:"productdata"`
-	Items            int64      `json:"items"`
-	Productdiscoiunt float64    `json:"productdiscount"`
-	Total            float64    `json:"total"`
+	
 }
 
 type RCart struct {
@@ -17,6 +15,9 @@ type RCart struct {
 type GetAllCartResponse struct {
 	Statuscode  int64  `json:"statuscode"`
 	Status      bool   `json:"status"`
-	Value       []Cart `json:"discountdata"`
+	Value       []Cart `json:"cartdata"`
+	Items            int64      `json:"items"`
+	Productdiscoiunt float64    `json:"productdiscount"`
+	Total            float64    `json:"total"`
 	Descreption string `json:"desc"`
 }

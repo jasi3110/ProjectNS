@@ -149,7 +149,7 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.ProductAll, boo
 								   unit,
 								   coalesce( (select item from unit where id = unit) ) as unit,
 								   price,
-								   createdon from "product" where id=$1`)
+								   createdon from "product" where id=$1 and isdeleted=0`)
     if err != nil { 
 	    fmt.Println("Error in Product GetById QueryRow :", err)
 		return productStruct, false, "Failed"
