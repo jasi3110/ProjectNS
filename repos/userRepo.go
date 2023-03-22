@@ -5,8 +5,10 @@ import (
 	"OnlineShop/utls"
 	"fmt"
 	"log"
+	"sync"
 )
-
+ 
+var wg sync.WaitGroup
 type UserInterface interface {
 
 	UserCreate(obj *models.User) (string, bool)
@@ -25,6 +27,7 @@ type UserInterface interface {
 }
 
 type UserRepo struct {
+	vall (chan models.User)
 }
 
 func (user *UserRepo) UserCreate(obj *models.User) (string, bool) {
@@ -88,10 +91,12 @@ func (user *UserRepo) UserLogin(obj *models.LoginUser) (models.User, bool, strin
 									email,
 									mobileno,
 									role,
+									token,
 									createdon
 									from "user" where mobileno=$1 and password=$2 and isdeleted=0`)
 	if err != nil {
 		log.Println("Error in User Login QueryRow :", err)
+		
 		return userStruct, false, "User Login  Failed"
 	}
 
@@ -100,6 +105,7 @@ func (user *UserRepo) UserLogin(obj *models.LoginUser) (models.User, bool, strin
 		&userStruct.Email,
 		&userStruct.Mobileno,
 		&userStruct.Role,
+		&userStruct.Token,
 		&userStruct.CreatedOn,
 	)
 	if err != nil {
@@ -116,6 +122,8 @@ func (user *UserRepo) UserLogin(obj *models.LoginUser) (models.User, bool, strin
 		return userStruct, false, "User Login  Failed"
 	}
 defer Db.Close()
+user.vall <- userStruct
+defer wg.Done()
 	return userStruct, true, "User Login Successfully Completed"
 }
 
@@ -156,7 +164,7 @@ func (user *UserRepo) UserDelete(obj *models.User) (bool, string) {
 
 
 
-func (user *UserRepo) UserGetall() ([]models.User, bool) {
+ func (user *UserRepo) UserGetall() ([]models.User, bool) {
 	Db, isConnected := utls.OpenDbConnection()
 	if !isConnected {
 		fmt.Println("DB Disconnceted in User Getall")

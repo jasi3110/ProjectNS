@@ -185,7 +185,7 @@ func (sale *SaleStruct) InvoiceGetallByCustomerid(obj *int64) ([]models.Invoice,
 	invoiceStruct := models.Invoice{}
 	result := []models.Invoice{}
 
-	query, err := Db.Query(`SELECT id,billamount,customerid,createdon,items createdby FROM "invoice" where customerid=1 and isdeleted=1`)
+	query, err := Db.Query(`SELECT id,billamount,customerid,createdon,items createdby FROM "invoice" WHERE customerid=$1  and isdeleted=0`,obj)
 	if err != nil {
 		log.Println(err)
 		return result, false
@@ -198,7 +198,6 @@ fmt.Println("c",obj,invoiceStruct,result)
 			&invoiceStruct.BillAmount,
 			&invoiceStruct.CustomerId,
 			&invoiceStruct.CreatedOn,
-			&invoiceStruct.CreatedBy,
 			&invoiceStruct.Items,
 		)
 		fmt.Println("",invoiceStruct)

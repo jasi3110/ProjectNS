@@ -3,11 +3,15 @@ package repos
 import (
 	"OnlineShop/models"
 	"OnlineShop/repos/masterRepo"
+	// "sync"
+
 	// "OnlineShop/repos/masterRepo"
 	"OnlineShop/utls"
 	"fmt"
 	"log"
 )
+// var wg sync.WaitGroup
+ 
 
 type ProductInterface interface {
 	ProductCreate(obj *models.Product) (string, bool)
@@ -16,23 +20,25 @@ type ProductInterface interface {
 
 
 	GetProductById(obj *int64) (models.ProductAll, bool, string)
-	ProductGetAll() ([]models.ProductAll, bool, string)
+    ProductGetAll() ([]models.ProductAll, bool, string)
 
 
 	ProductGetAllByUnit(obj *int64) ([]models.ProductAll, bool, string)
 	ProductGetAllByCategory(obj *int64) ([]models.ProductAll, bool, string)
 }
 type ProductStruct struct {
+	 vall (chan models.ProductAll)
 }
+
 
 func (product *ProductStruct) ProductCreate(obj *models.Product) (string, bool) {
 	Db, isConnected := utls.OpenDbConnection()
 	if !isConnected {
 		fmt.Println("DB Disconnceted in Product Create")
 	}
-if obj.Image==""{
-obj.Image="https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600w-1114445501.jpg"
-}
+ 	if obj.Image==""{
+	obj.Image="https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600w-1114445501.jpg"
+	}
 	err := Db.QueryRow(`INSERT into "product"(
 		image,
 		name,
@@ -131,13 +137,13 @@ func (product *ProductStruct) ProductDelete(obj *models.User) (bool, string) {
 }
 
 
-
+ 
 func (product *ProductStruct) GetProductById(obj *int64) (models.ProductAll, bool, string) {
-
+   
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
 		fmt.Println("DB Disconnected in Product GetByID")
-}
+    }
 
 	productStruct := models.ProductAll{}
 	query, err := Db.Prepare(`SELECT id,
@@ -177,40 +183,41 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.ProductAll, boo
 		return productStruct,false,descreption
 	}
 	defer Db.Close()
+	 product.vall <- productStruct
+	defer wg.Done()
 	return productStruct, true, "Successfully Completed"
 }
 
 
 
-func (product *ProductStruct) ProductGetAll() ([]models.ProductAll, bool, string) {
+ func (product *ProductStruct) ProductGetAll() ([]models.ProductAll, bool, string) {
 	Db, isConnected := utls.OpenDbConnection()
 	if !isConnected {
 		fmt.Println("DB Disconnceted in Product GetAll ")
 	}
 	result := []models.ProductAll{}
 	productStruct := models.Product{}
-
+	
 	query, err := Db.Query(`SELECT id FROM "product" WHERE isdiscount=0 and isdeleted=0`)
 	if err != nil {
 		log.Println(err)
 	}
 	for query.Next() {
 		err := query.Scan(&productStruct.Id)
-		value, status, descreption := product.GetProductById(&productStruct.Id)
-		
+		go product.GetProductById(&productStruct.Id)
+		wg.Add(1)
 		if err != nil {
 			fmt.Println("Error in Product GetAll QueryRow :", err)
 			return result, false, "failed to  Get All Product Data"
-		}
-		if !status {
-			fmt.Println(descreption)
-			return result, false,descreption
-		}
-		result = append(result, value)
 	}
-	defer Db.Close()
+	
+		result = append(result, <-product.vall)
+	}
+	wg.Wait()
+	defer Db.Close() 
+	
 	return result, true, "successfully Completed"
-}
+ }
 
 
 
@@ -277,5 +284,4 @@ func (product *ProductStruct) ProductGetAllByUnit(obj *int64) ([]models.ProductA
 	Db.Close()
 	return result, true, "successfully Completed"
 }
-
 
