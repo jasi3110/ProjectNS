@@ -211,6 +211,15 @@ fmt.Println("c",obj,invoiceStruct,result)
 	return result, true
 }
 
+// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
 
 func (sale *SaleStruct) SaleGetByCustomerid(obj *int64) (models.InvoiceBillById, bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
@@ -232,7 +241,7 @@ func (sale *SaleStruct) SaleGetByCustomerid(obj *int64) (models.InvoiceBillById,
 											createdon,
 											createdby
 												FROM "saleentry"
-												WHERE customerid= $1 and isdeleted=1`, obj)
+												WHERE customerid=$1 and isdeleted=0`, obj)
 	if err != nil {
 		fmt.Println("Error in SaleGetByBillid QueryRow :", err)
 		return result, false, "Failed"
@@ -296,7 +305,7 @@ func (sale *SaleStruct) SaleGetByBillid(obj *int64) (models.InvoiceBillById, boo
 											createdon,
 											createdby
 												FROM "saleentry"
-												WHERE billid = $1 and isdeleted=1`, obj)
+												WHERE billid = $1 and isdeleted=0`, obj)
 	if err != nil {
 		fmt.Println("Error in SaleGetByBillid QueryRow :", err)
 		return result, false, "Failed"
@@ -331,7 +340,7 @@ func (sale *SaleStruct) SaleGetByBillid(obj *int64) (models.InvoiceBillById, boo
 		value.Price.Nop = valueprice.Nop
 		value.Quantity = productStruct.Quantity
 		result.Products = append(result.Products, value)
-
+fmt.Println("",value)
 	}
 	fmt.Println("", result)
 	return result, true, "Successfully Completed"
