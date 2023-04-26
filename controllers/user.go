@@ -209,7 +209,7 @@ func (user *UserController) Userverfiy(w http.ResponseWriter, r *http.Request) {
 		response := models.CommanRespones{
 			Statuscode:  200,
 			Status:      false,
-			Descreption: "Check yourww Mobile Number Or Email",
+			Descreption: "Check your Mobile Number Or Email",
 		}
 		resp, err := json.Marshal(response)
 

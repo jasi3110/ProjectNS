@@ -16,7 +16,7 @@ import (
 type ProductInterface interface {
 	ProductCreate(obj *models.Product) (string, bool)
 	ProductUpdate(obj *models.Product) (string, bool)
-	ProductDelete(obj *models.User) (bool, string)
+	ProductDelete(obj *models.Product) (bool, string)
 
 
 	GetProductById(obj *int64) (models.ProductAll, bool, string)
@@ -27,7 +27,6 @@ type ProductInterface interface {
 	ProductGetAllByCategory(obj *int64) ([]models.ProductAll, bool, string)
 }
 type ProductStruct struct {
-	 vall (chan models.ProductAll)
 }
 
 
@@ -72,7 +71,7 @@ func (product *ProductStruct) ProductCreate(obj *models.Product) (string, bool) 
 		fmt.Println(descreption)
 		return descreption, false
 	}
-	_,err =Db.Query( `UPDATE "product" SET mrp=$2,nop=$3 WHERE id=$1 and isdeleted=0`, &value.ProductId, &value.Id)
+	_,err =Db.Query( `UPDATE "product" SET price=$2 WHERE id=$1 and isdeleted=0`, &value.ProductId, &value.Id)
 
 	
 
@@ -121,7 +120,7 @@ func (product *ProductStruct) ProductUpdate(obj *models.Product) (string, bool) 
 
 
 
-func (product *ProductStruct) ProductDelete(obj *models.User) (bool, string) {
+func (product *ProductStruct) ProductDelete(obj *models.Product) (bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
 		fmt.Println("DB disconnceted in Product Delete ")
@@ -182,7 +181,10 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.ProductAll, boo
 		fmt.Println("Error in Product GetbyId price ById QueryRow :",descreption)
 		return productStruct,false,descreption
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return productStruct, true, "Successfully Completed"
 }
 
@@ -214,7 +216,10 @@ func (product *ProductStruct) ProductGetAll() ([]models.ProductAll, bool, string
 		}
 		result = append(result, value)
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true, "successfully Completed"
 }
 
@@ -249,7 +254,10 @@ func (product *ProductStruct) ProductGetAllByCategory(obj *int64) ([]models.Prod
 		}
 		result = append(result, value)
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true, "successfully Completed"
 }
 
@@ -282,7 +290,10 @@ func (product *ProductStruct) ProductGetAllByUnit(obj *int64) ([]models.ProductA
 		}
 		result = append(result, value)
 	}
-	Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true, "successfully Completed"
 }
 

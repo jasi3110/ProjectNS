@@ -27,7 +27,6 @@ type UserInterface interface {
 }
 
 type UserRepo struct {
-	vall (chan models.User)
 }
 
 func (user *UserRepo) UserCreate(obj *models.User) (string, bool) {
@@ -122,8 +121,6 @@ func (user *UserRepo) UserLogin(obj *models.LoginUser) (models.User, bool, strin
 		return userStruct, false, "User Login  Failed"
 	}
 defer Db.Close()
-user.vall <- userStruct
-defer wg.Done()
 	return userStruct, true, "User Login Successfully Completed"
 }
 
@@ -259,6 +256,7 @@ func (user *UserRepo) Userverify(obj *models.Userverify) ( int64,bool, string) {
 		fmt.Println("DB Disconnented in  User verify Repo ")
 	}
 	query, err := Db.Query(`SELECT id,mobileno,email FROM "user" WHERE isdeleted=0`)
+
 	if err != nil {
 		log.Println("Error in  User verify QueryRow :", err)
 	}
@@ -270,9 +268,10 @@ func (user *UserRepo) Userverify(obj *models.Userverify) ( int64,bool, string) {
 
 		if obj.VerifyUser == userStruct.Mobileno || obj.VerifyUser == userStruct.Email{
 			obj.OTP = otp
-			err :=Db.QueryRow( `UPDATE "user" SET otppassword=$2 WHERE id=$1 and isdeleted=0`,&userStruct.Id,obj.OTP)
+			
+			query :=Db.QueryRow( `UPDATE "user" SET otppassword=$2 WHERE id=$1 and isdeleted=0`,&userStruct.Id,obj.OTP)
 
-			if err != nil {
+			if query == nil {
 				log.Println("Error in  User verify Update Otp QueryRow :", err)
 				// missing  OTP SEND TO MOBILENUMBER
 				return 0,false, "Invaild User"
@@ -319,10 +318,10 @@ func (user *UserRepo) UserUpdatePassword(obj *models.UserPassword) (string, bool
 		fmt.Println("DB Disconnceted in User Update Password ")
 	}
 
-	err :=Db.QueryRow( `UPDATE "user" SET password = $2 WHERE id=$1 and isdeleted=0`,&obj.Id,&obj.Password)
+	query :=Db.QueryRow( `UPDATE "user" SET password = $2 WHERE id=$1 and isdeleted=0`,&obj.Id,&obj.Password)
 	
-	if err != nil {
-		fmt.Println("Error in User Update Password QueryRow :", err)
+	if query == nil {
+		fmt.Println("Error in User Update Password QueryRow :")
 		return "User Password Update Failed", false
 	}
 	return "User Password Update Successfully Completed", true

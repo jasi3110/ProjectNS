@@ -69,6 +69,44 @@ func (Product *Product) ProductUpdate(w http.ResponseWriter, r *http.Request) {
 	w.Write(respone)
 }
 
+
+func (Product *Product) ProductDelete(w http.ResponseWriter, r *http.Request) {
+	request := models.Product{}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		log.Println("Error in Decoding ProductDelete Request :", err)
+		response := models.CommanRespones{
+			Statuscode:  300,
+			Status:      false,
+			Descreption: "Error in Decoding ProductDelete Request :",
+		}
+		respone, err := json.Marshal(&response)
+		if err != nil {
+			log.Println("Error in Marshal ProductDelete Response :", err)
+		}
+		w.Write(respone)
+	}
+	repo := repos.ProductInterface(&repos.ProductStruct{})
+	 status,result := repo.ProductDelete(&request)
+	response := models.CommanRespones{
+		Statuscode:  300,
+		Status:      status,
+		Descreption: result,
+	}
+	respone, err := json.Marshal(&response)
+	if err != nil {
+		log.Println("Error in Marshal ProductDelete Response :", err)
+	}
+	w.Write(respone)
+}
+
+
+
+
+
+
+
+
 func (Product *Product) ProductGetById(w http.ResponseWriter, r *http.Request) {
 
 	request := mux.Vars(r)

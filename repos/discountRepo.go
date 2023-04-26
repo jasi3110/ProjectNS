@@ -145,7 +145,7 @@ func (discount *DiscountStruct) DiscountGetAll() ([]models.ProductAll, bool, str
 		}
 			productRepo:=ProductInterface(&ProductStruct{})
 			value,status,descreption:=productRepo.GetProductById(&discountStruct.Id)
-			fmt.Println(value,status)
+			// fmt.Println(value,status)
 			value.Percentage=discountStruct.Percentage
 			value.Price.Id=0000
 			value.Price.Mrp=discountStruct.Price.Mrp
@@ -158,5 +158,9 @@ func (discount *DiscountStruct) DiscountGetAll() ([]models.ProductAll, bool, str
 			
 		result = append(result, value )
 	}
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true, "sucessfully Completed"
 }
