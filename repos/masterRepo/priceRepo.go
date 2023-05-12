@@ -33,7 +33,9 @@ func (price *PriceStruct) CreatePrice(obj *models.Price) (bool, string, models.P
 		fmt.Println("Error in Createprice QueryRow:", err)
 		return false, "Failed", *obj
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+	}()
 	return true, "price  Successfully Created", *obj
 }
 
@@ -50,7 +52,9 @@ func (price *PriceStruct) PriceUpdate(obj *models.Price) (string, bool) {
 		fmt.Println("Error in PriceUpdate QueryRow :", err)
 		return "Failed", false
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+	}()
 	return "Successfully Updated", true
 }
 
@@ -77,7 +81,10 @@ func (price *PriceStruct) PriceByDate(obj *models.Price) (models.Price, bool, st
 		fmt.Println("Error in PriceByDate QueryRow Scan :", err)
 		return priceStruct, false, "Failed"
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return priceStruct, true, "Successfully Completed"
 }
 
@@ -102,7 +109,10 @@ func (price *PriceStruct) PriceById(obj *models.Price) (models.Price, bool, stri
 		fmt.Println("Error in PriceById QueryRow Scan:", err)
 		return priceStruct, false, "Failed"
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return priceStruct, true, "Successfully Completed"
 }
 
@@ -134,7 +144,10 @@ func (price *PriceStruct) PriceGetAll() ([]models.Price, bool, string) {
 		}
 		result = append(result, priceStruct)
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true, "successfully Completed"
 }
 
@@ -165,6 +178,9 @@ func (price *PriceStruct) PriceProductGetAll(obj *models.Price) ([]models.Price,
 		}
 		result = append(result, priceStruct)
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true, "successfully Completed"
 }

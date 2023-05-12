@@ -30,12 +30,11 @@ func (UserAddress *UserAddressStruct) UserAddressCreate(obj *models.UserAddress)
 		fmt.Println("Error in Create Category QueryRow :", err)
 		return false, " Address Create Failed "
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+	}()
 	return true, "Address Create Successfully"
 }
-
-
-
 
 func (UserAddress *UserAddressStruct) UserAddressUpdate(obj *models.UserAddress) (models.UserAddress, string, bool) {
 	Db, isconnceted := utls.OpenDbConnection()
@@ -49,11 +48,11 @@ func (UserAddress *UserAddressStruct) UserAddressUpdate(obj *models.UserAddress)
 		fmt.Println("Error in UserAddress Upadte QueryRow :")
 		return *obj, "Update Failed", false
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+	}()
 	return *obj, "Address Successfully Updated", true
 }
-
-
 
 func (UserAddress *UserAddressStruct) UserAddressDelete(obj *models.UserAddress) (bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
@@ -66,11 +65,11 @@ func (UserAddress *UserAddressStruct) UserAddressDelete(obj *models.UserAddress)
 		fmt.Println("Error in Address Delete QueryRow :")
 		return false, "Failed"
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+	}()
 	return true, "Address Deleted Successfully Completed"
 }
-
-
 
 func (UserAddress *UserAddressStruct) UserAddressGetById(obj *models.UserAddress) (models.UserAddress, bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
@@ -87,11 +86,12 @@ func (UserAddress *UserAddressStruct) UserAddressGetById(obj *models.UserAddress
 		fmt.Println("Error in UserAddress GetById QueryRow :", err)
 		return UserAddressStruct, false, "Error is founded in UserAddress GetById"
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return UserAddressStruct, true, "successfully Completed"
 }
-
-
 
 func (UserAddress *UserAddressStruct) UserAddressGetAll() ([]models.UserAddress, bool, string) {
 	Db, isConnected := utls.CreateDbConnection()
@@ -119,11 +119,12 @@ func (UserAddress *UserAddressStruct) UserAddressGetAll() ([]models.UserAddress,
 		}
 		result = append(result, UserAddressStruct )
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true, "Successfully Completed"
 }
-
-
 
 func (UserAddress *UserAddressStruct) UserAddressGetAllCustomer(obj *int64) ([]models.UserAddress, bool, string) {
 	Db, isConnected := utls.CreateDbConnection()
@@ -152,7 +153,10 @@ func (UserAddress *UserAddressStruct) UserAddressGetAllCustomer(obj *int64) ([]m
 		}
 		result = append(result, UserAddressStruct )
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true, "successfully Completed"
 }
 

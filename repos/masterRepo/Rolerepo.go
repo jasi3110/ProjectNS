@@ -26,33 +26,39 @@ func (role *RoleStruct) CreateRole(obj *models.Role) (bool, string) {
 		fmt.Println("Error in Create Role QueryRow:", err)
 		return false, " Create Role Failed "
 	}
+	defer func() {
+		Db.Close()
+	}()
 	return true, "Role  Sucessfully Created"
 }
 
 func (role *RoleStruct) RoleUpdate(obj *models.Role) (string, bool) {
-	myDb, isconncet := utls.OpenDbConnection()
+	Db, isconncet := utls.OpenDbConnection()
 	if !isconncet {
 		fmt.Println("DB Disconnceted in Role Update")
 	}
 
 	query := `UPDATE "role" SET type=$2 WHERE id=$1`
-	_, err := myDb.Exec(query, &obj.Id, &obj.Type)
+	_, err := Db.Exec(query, &obj.Id, &obj.Type)
 
 	if err != nil {
 		fmt.Println("Error in Role Update QueryRow :", err)
 		return "Update Failed", false
 	}
+	defer func() {
+		Db.Close()
+	}()
 	return "Sucessfully Updated", true
 }
 
 func (role *RoleStruct) RoleById(obj *models.Role) (models.Role, bool, string) {
-	mydb, conncet := utls.OpenDbConnection()
+	Db, conncet := utls.OpenDbConnection()
 	if !conncet {
 		fmt.Println("DB Disconnceted in RoleById")
 	}
 	roleStruct := models.Role{}
 
-	query, _ := mydb.Prepare(`SELECT id,type from "role" where id=$1`)
+	query, _ := Db.Prepare(`SELECT id,type from "role" where id=$1`)
 
 	err := query.QueryRow(obj.Id).Scan(&roleStruct.Id, &roleStruct.Type)
 
@@ -60,6 +66,10 @@ func (role *RoleStruct) RoleById(obj *models.Role) (models.Role, bool, string) {
 		fmt.Println("Error in RoleById QueryRow :", err)
 		return roleStruct, false, "Role Get By ID failed"
 	}
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return roleStruct, true, "Sucessfully Completed"
 }
 
@@ -71,13 +81,13 @@ func (role *RoleStruct) RoleGetAll() ([]models.Role, bool, string) {
 	result := []models.Role{}
 	roleStruct := models.Role{}
 
-	res, err := Db.Query(`SELECT id,type FROM "role"`)
+	query, err := Db.Query(`SELECT id,type FROM "role"`)
 	if err != nil {
 		fmt.Println("Error in Role GetAll Queryrow :", err)
 	}
 
-	for res.Next() {
-		err := res.Scan(
+	for query.Next() {
+		err := query.Scan(
 			&roleStruct.Id,
 			&roleStruct.Type,
 		)
@@ -87,5 +97,9 @@ func (role *RoleStruct) RoleGetAll() ([]models.Role, bool, string) {
 		}
 		result = append(result, roleStruct)
 	}
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true, "sucessfully Completed"
 }

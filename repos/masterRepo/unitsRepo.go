@@ -25,6 +25,9 @@ func (unit *UnitStruct) CreateUnit(obj *models.Unit) (bool, string) {
 		fmt.Println("Error in  Create Unit QueryRow :", err)
 		return false, "Create unit is Failed"
 	}
+	defer func() {
+		Db.Close()
+	}()
 	return true, "Create Unit Sucessfully"
 }
 
@@ -41,6 +44,9 @@ func (unit *UnitStruct) UnitUpdate(obj *models.Unit) (string, bool) {
 		fmt.Println("Error in Unit Update QueryRow :", err)
 		return "Update Failed", false
 	}
+	defer func() {
+		Db.Close()
+	}()
 	return "Sucessfully Updated", true
 }
 
@@ -51,13 +57,22 @@ func (unit *UnitStruct) UnityById(obj *models.Unit) (models.Unit, bool, string) 
 	}
 	UnitStruct:= models.Unit{}
 
-	query, _ := Db.Prepare(`SELECT id,item from "unit" where id=$1`)
+	query, err := Db.Prepare(`SELECT id,item from "unit" where id=$1`)
 
-	err := query.QueryRow(obj.Id).Scan(&UnitStruct.Id, &UnitStruct.Item)
 	if err != nil {
 		fmt.Println("Error in UnitById QueryRow :", err)
 		return UnitStruct, false, "Error is founded on get by id on unit"
 	}
+
+	err = query.QueryRow(obj.Id).Scan(&UnitStruct.Id, &UnitStruct.Item)
+	if err != nil {
+		fmt.Println("Error in UnitById QueryRow :", err)
+		return UnitStruct, false, "Error is founded on get by id on unit"
+	}
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return UnitStruct, true, "sucessfully completed"
 }
 
@@ -85,6 +100,10 @@ func (unit *UnitStruct) UnitByAll() ([]models.Unit, bool, string) {
 		}
 		result = append(result, unitStruct)
 	}
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true, "sucessfully Completed"
 }
   

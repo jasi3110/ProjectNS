@@ -31,11 +31,11 @@ func (category *CategoryStruct) CreateCategory(obj *models.Category) (bool, stri
 		fmt.Println("Error in Create Category QueryRow :", err)
 		return false, " Create Category Failed "
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+	}()
 	return true, "Category Successfully Created"
 }
-
-
 
 func (category *CategoryStruct) CategoryUpdate(obj *models.Category) (models.Category, string, bool) {
 	Db, isconnceted := utls.OpenDbConnection()
@@ -49,11 +49,11 @@ func (category *CategoryStruct) CategoryUpdate(obj *models.Category) (models.Cat
 		fmt.Println("Error in Category Upadte QueryRow :", err)
 		return *obj, "Update Failed", false
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+	}()
 	return *obj, "Successfully Updated", true
 }
-
-
 
 func (category *CategoryStruct) CategoryDelete(obj *models.User) (bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
@@ -67,11 +67,11 @@ func (category *CategoryStruct) CategoryDelete(obj *models.User) (bool, string) 
 		fmt.Println("Error in category Delete QueryRow :", err)
 		return false, "Failed"
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+	}()
 	return true, "Category Successfully Completed"
 }
-
-
 
 func (category *CategoryStruct) CategoryById(obj *models.Category) (models.Category, bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
@@ -91,11 +91,12 @@ func (category *CategoryStruct) CategoryById(obj *models.Category) (models.Categ
 		fmt.Println("Error in Category GetById QueryRow Scan:", err)
 		return categoryStruct, false, "Failed"
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return categoryStruct, true, "successfully Completed"
 }
-
-
 
 func (category *CategoryStruct) CategoryGetAll() ([]models.Category, bool, string) {
 	Db, isConnected := utls.CreateDbConnection()
@@ -122,11 +123,12 @@ func (category *CategoryStruct) CategoryGetAll() ([]models.Category, bool, strin
 		}
 		result = append(result, categoryStruct )
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true, "successfully Completed"
 }
-
-
 
 func (category *CategoryStruct) CategoryGetAllbyid() ([]models.Category, bool, string) {
 	Db, isConnected := utls.CreateDbConnection()
@@ -153,6 +155,9 @@ func (category *CategoryStruct) CategoryGetAllbyid() ([]models.Category, bool, s
 		}
 		result = append(result, categoryStruct )
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true, "successfully Completed"
 }

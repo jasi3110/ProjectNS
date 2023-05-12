@@ -31,11 +31,11 @@ func (cart *CartStruct) Createcart(obj *models.RCart) (bool, string) {
 		fmt.Println("Error in Create cart QueryRow :", err)
 		return false, " Create cart Failed "
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+	}()
 	return true, "cart Successfully Created"
 }
-
-
 
 func (cart *CartStruct) CartUpdate(obj *models.RCart) (string, bool) {
 	Db, isconnceted := utls.OpenDbConnection()
@@ -50,11 +50,11 @@ func (cart *CartStruct) CartUpdate(obj *models.RCart) (string, bool) {
 		fmt.Println("Error in cart Update QueryRow :", err)
 		return  "Update Failed", false
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+	}()
 	return "Successfully Updated", true
 }
-
-
 
 func (cart *CartStruct) CartGetAll(obj *int64) (models.GetAllCartResponse, bool, string) {
 	Db, isConnected := utls.CreateDbConnection()
@@ -95,10 +95,12 @@ if !status {
 }
 		result.Value = append(result.Value, cartStruct)
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true, "successfully Completed"
 }
-
 
 func (cart *CartStruct) CartProductDelete(obj *models.RCart) (bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
@@ -112,7 +114,10 @@ func (cart *CartStruct) CartProductDelete(obj *models.RCart) (bool, string) {
 		fmt.Println("Error in Cart Delete QueryRow :", err)
 		return false, "Cart Product Delete Failed"
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return true, "Cart Deleted Successfully "
 }
 
@@ -128,6 +133,9 @@ func (cart *CartStruct) CartDelete(obj *models.RCart) (bool, string) {
 		fmt.Println("Error in Cart Delete QueryRow :", err)
 		return false, "Cart Delete Failed"
 	}
-	defer Db.Close()
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return true, "Cart Deleted Successfully "
 }
