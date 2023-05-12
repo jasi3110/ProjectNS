@@ -9,7 +9,7 @@ import (
 type UserAddressInterface interface {
 	UserAddressCreate(obj *models.UserAddress) (bool, string)
 	UserAddressUpdate(obj *models.UserAddress) (models.UserAddress, string, bool)
-	UserAddressDelete(obj *models.User) (bool, string)
+	UserAddressDelete(obj *models.UserAddress) (bool, string)
 
 
 	UserAddressGetById(obj *models.UserAddress) (models.UserAddress, bool, string)
@@ -42,11 +42,11 @@ func (UserAddress *UserAddressStruct) UserAddressUpdate(obj *models.UserAddress)
 	if !isconnceted {
 		fmt.Println("DB Disconnceted in User Address Update")
 	}
-	err :=Db.QueryRow(`UPDATE "useraddress" SET name=$2,address=$3 WHERE id=$1 and isdeleted=0`,
-	&obj.Id, &obj.Name,obj.Address)
-
-	if err != nil {
-		fmt.Println("Error in UserAddress Upadte QueryRow :", err)
+	query :=`UPDATE "useraddress" SET name=$3,address=$4 WHERE id=$1 and customerid =$2 and isdeleted=0`
+	_, err :=Db.Exec(query,&obj.Id,&obj.Customerid, &obj.Name,&obj.Address)
+	
+	if err!= nil {
+		fmt.Println("Error in UserAddress Upadte QueryRow :")
 		return *obj, "Update Failed", false
 	}
 	defer Db.Close()
@@ -55,15 +55,15 @@ func (UserAddress *UserAddressStruct) UserAddressUpdate(obj *models.UserAddress)
 
 
 
-func (UserAddress *UserAddressStruct) UserAddressDelete(obj *models.User) (bool, string) {
+func (UserAddress *UserAddressStruct) UserAddressDelete(obj *models.UserAddress) (bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
 		fmt.Println("DB disconnceted in Address Delete ")
 	}
-	err :=Db.QueryRow( `UPDATE "useraddress" SET isdeleted=1 WHERE id=$1 and isdeleted=0`,&obj.Id)
-	
-	if err != nil {
-		fmt.Println("Error in Address Delete QueryRow :", err)
+	query :=`UPDATE "useraddress" SET isdeleted=1 WHERE id=$1 andcustomerid=$2 isdeleted=0`
+	_, err :=Db.Exec(query,obj.Id,obj.Customerid)
+	if err!= nil {
+		fmt.Println("Error in Address Delete QueryRow :")
 		return false, "Failed"
 	}
 	defer Db.Close()

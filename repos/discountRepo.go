@@ -68,6 +68,10 @@ func (discount *DiscountStruct) CreateDiscount(obj *models.RDiscount) (bool, str
 		fmt.Println("Error in Create Discount QueryRow :", err)
 		return false, " Create Discount Failed "
 	}
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return true, " Create Discount Successfully Compeleted "
 }
 
@@ -77,12 +81,16 @@ func (discount *DiscountStruct) DiscountUpdate(obj *models.RDiscount) (bool,stri
 		fmt.Println("DB Disconnceted in Discount Product Update")
 	}
 
-	err :=Db.QueryRow( `UPDATE "discount" SET percentage = $2 ,enddate=$3 WHERE id=$1 and isdeleted=0`,&obj.Id,&obj.Percentage,&obj.Enddate)
+	query:=`UPDATE "discount" SET percentage = $2 ,enddate=$3 WHERE id=$1 and isdeleted=0`
+	_, err :=Db.Exec(query,&obj.Id,&obj.Percentage,&obj.Enddate)
 	
 	if err != nil {
 		fmt.Println("Error in Discount Product Upadte QueryRow :", err) 
 		return false, "Update Failed"
 	}
+	defer func() {
+		Db.Close()
+	}()
 	return true, "Sucessfully Updated"
 }
 
@@ -115,7 +123,10 @@ func (discount *DiscountStruct) DiscountById(obj *int64) (models.ProductAll, boo
 					return value,false,descreption
 			}		
 	
-	
+			defer func() {
+				Db.Close()
+				query.Close()
+			}()
 	return value, true, "sucessfully Completed"
 }
 

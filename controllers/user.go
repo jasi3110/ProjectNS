@@ -57,7 +57,7 @@ func (user *UserController) UserCreate(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("Error in Marshal UserCreate Response : ", err)
 		}
-
+		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
 	}
 }
@@ -86,32 +86,34 @@ func (user *UserController) UserLogin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Error in Marshal Login respone :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
-func (User *UserController) UserUpdate(w http.ResponseWriter, r *http.Request) {
+func (User *UserController) UserUpdateEmail(w http.ResponseWriter, r *http.Request) {
 	request := models.UserUpdate{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		log.Println("Error in Decoding UserUpdate Request :", err)
 	}
 
-	status, description := ValidrequstUpdate(request)
+	status := models.VerifyEmail(request.Email)
 	if !status {
 		response := models.CommanRespones{
 			Statuscode:  200,
 			Status:      status,
-			Descreption: description,
+			Descreption: "Invalid Email",
 		}
 		resp, err := json.Marshal(response)
 
 		if err != nil {
 			log.Println("Error in marshal UserUpdate Validation Response :", err)
 		}
+		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
 	} else {
 		repo := repos.UserInterface(&repos.UserRepo{})
-		value, status, descreption := repo.UserUpdate(&request)
+		value, status, descreption := repo.UserUpdateEmail(&request)
 		respone := models.UserUpdateResponseModel{
 			Statuscode:  200,
 			Status:      status,
@@ -122,8 +124,32 @@ func (User *UserController) UserUpdate(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("Error in marshal UserUpdate Response :", err)
 		}
+		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
 	}
+}
+
+func (User *UserController) UserChangePassword(w http.ResponseWriter, r *http.Request) {
+	request := models.UserChangePassword{}
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		log.Println("Error in Decoding UserChangePassword Request :", err)
+	}
+
+		repo := repos.UserInterface(&repos.UserRepo{})
+		descreption, status := repo.UserChangePassword(&request)
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      status,
+			Descreption: descreption,
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			log.Println("Error in Marshal Change UserPassword Responsee:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
 }
 
 func (User *UserController) UserUpdatePassword(w http.ResponseWriter, r *http.Request) {
@@ -145,6 +171,7 @@ func (User *UserController) UserUpdatePassword(w http.ResponseWriter, r *http.Re
 		if err != nil {
 			log.Println("Error in Marshal Update UserPassword Responsee:", err)
 		}
+		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
 }
 
@@ -160,6 +187,7 @@ func (User *UserController) UserGetAll(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Error in Marshal GetAll User Response:", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
@@ -193,6 +221,7 @@ func (user *UserController) UserGetById(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		log.Println("Error in Marshal UserGetById Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
@@ -216,6 +245,7 @@ func (user *UserController) Userverfiy(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("Error in Marshal UserUpdatePassword Validation Response :", err)
 		}
+		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
 	} else {
 		repo := repos.UserInterface(&repos.UserRepo{})
@@ -231,6 +261,7 @@ func (user *UserController) Userverfiy(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("Error in Marshal Update UserPassword Responsee:", err)
 		}
+		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
 	}
 }
@@ -256,6 +287,7 @@ func (user *UserController) UserCheckOtp(w http.ResponseWriter, r *http.Request)
 		if err != nil {
 			log.Println("Error in Marshal Update UserPassword Responsee:", err)
 		}
+		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
 }
 
@@ -282,6 +314,7 @@ func (user *UserController) UserDelete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Error in Marshal UserGetById Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 

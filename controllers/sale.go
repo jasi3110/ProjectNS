@@ -36,6 +36,7 @@ resp,err:=json.Marshal(response)
 if err!=nil {
 	fmt.Println("Error in Marshal saleEntry :",err)
 }
+w.Header().Set("Content-Type", "Application/json")
 w.Write(resp)
 }
 
@@ -53,6 +54,7 @@ func (sale *SaleController) SaleInvoiceGetAll(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		fmt.Println("Error in Marshal SaleGetAll Request :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
@@ -74,6 +76,7 @@ func (sale *SaleController) InvoiceGetallByCustomerid(w http.ResponseWriter, r *
 	if err != nil {
 		fmt.Println("Error in Marshal SaleGetAll Request :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
@@ -99,6 +102,7 @@ func (sale *SaleController) SaleGetByBillId(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		fmt.Println("Error in Marshal ProductGetById response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
@@ -124,6 +128,7 @@ func (sale *SaleController) SaleGetByCustomerid(w http.ResponseWriter, r *http.R
 	if err != nil {
 		fmt.Println("Error in Marshal ProductGetById response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
@@ -153,6 +158,7 @@ func (sale *SaleController) GetUserReportByDateRange(w http.ResponseWriter, r *h
 	if err != nil {
 		fmt.Println("Error in Marshal ProductGetById response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
@@ -179,5 +185,6 @@ func (sale *SaleController) SaleDelete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Error in Marshal UserGetById Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }

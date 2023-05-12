@@ -42,8 +42,8 @@ func (category *CategoryStruct) CategoryUpdate(obj *models.Category) (models.Cat
 	if !isconnceted {
 		fmt.Println("DB Disconnceted in Category Update")
 	}
-	err :=Db.QueryRow(`UPDATE "category" SET name=$2 WHERE id=$1 AND isdeleted=0`,
-	&obj.Id, &obj.Name)
+	query:=`UPDATE "category" SET name=$2 WHERE id=$1 AND isdeleted=0`
+	_, err :=Db.Exec(query,&obj.Id, &obj.Name)
 	
 	if err != nil {
 		fmt.Println("Error in Category Upadte QueryRow :", err)
@@ -60,7 +60,8 @@ func (category *CategoryStruct) CategoryDelete(obj *models.User) (bool, string) 
 	if !isconnceted {
 		fmt.Println("DB disconnceted in Category Delete ")
 	}
-	err :=Db.QueryRow( `UPDATE "category" SET isdeleted=1 WHERE id=$1 and isdeleted=0`,&obj.Id)
+	query:=`UPDATE "category" SET isdeleted=1 WHERE id=$1 and isdeleted=0`
+	_, err :=Db.Exec(query,&obj.Id)
 	
 	if err != nil {
 		fmt.Println("Error in category Delete QueryRow :", err)

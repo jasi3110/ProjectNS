@@ -31,6 +31,7 @@ func (UserAddress *UserAddressController) UserAddressCreate(w http.ResponseWrite
 	if err != nil {
 		fmt.Println("Error in Marshal UserAddressCreate Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
@@ -52,6 +53,28 @@ func (UserAddress *UserAddressController) UserAddressUpdate(w http.ResponseWrite
 	if err != nil {
 		fmt.Println("Error in Marshal UserAddressUpdate Response:", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
+	w.Write(resp)
+}
+
+func (UserAddress *UserAddressController) UserAddressDelete(w http.ResponseWriter, r *http.Request) {
+	request := models.UserAddress{}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		fmt.Println("Error in Decoding UserAddressDelete Request :", err)
+	}
+	repo := masterrepo.UserAddressInterface(&masterrepo.UserAddressStruct{})
+   status, descreption := repo.UserAddressDelete(&request)
+	response := models.CommanRespones{
+		Statuscode:  200,
+		Status:      status,
+		Descreption: descreption,
+	}
+	resp, err := json.Marshal(&response)
+	if err != nil {
+		fmt.Println("Error in Marshal UserAddressDelete Response:", err)
+	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
@@ -81,6 +104,7 @@ func (UserAddress *UserAddressController) UserAddressGetById(w http.ResponseWrit
 	if err != nil {
 		fmt.Println("Error in Marshal UserAddressGetById Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
@@ -98,9 +122,9 @@ func (UserAddress *UserAddressController) UserAddressGetAll(w http.ResponseWrite
 	if err != nil {
 		fmt.Println("Error in Marshal UserAddressGetAll Response :",err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
-
 
 func (UserAddress *UserAddressController) UserAddressGetAllCustomer(w http.ResponseWriter, r *http.Request) {
 	request := mux.Vars(r)
@@ -121,5 +145,6 @@ func (UserAddress *UserAddressController) UserAddressGetAllCustomer(w http.Respo
 	if err != nil {
 		fmt.Println("Error in Marshal UserAddressGetAll Response :",err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }

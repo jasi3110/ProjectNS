@@ -31,6 +31,7 @@ func (role *RoleController) RoleCreate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Error in Marshal RoleCreate Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
@@ -51,6 +52,7 @@ func (role *RoleController) RoleUpdate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Error in Marshal RoleUpdate Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
 
@@ -79,6 +81,7 @@ func (role *RoleController) RoleGetById(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		fmt.Println("Error in Marshal RoleGetById Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
 
@@ -96,6 +99,7 @@ func (role *RoleController) RoleGetAll(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Error in Marshal RoleGetAll Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
 

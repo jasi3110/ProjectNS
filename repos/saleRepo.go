@@ -138,7 +138,9 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 			return false, "CREATE SALE FAILED", *obj
 		}
 	}
-	defer Db.Close()
+		defer func() {
+		Db.Close()
+	}()
 	return true, "CREATE SALE SUCCESSFULLY COMPLETED", *obj
 }
 
@@ -171,7 +173,10 @@ func (sale *SaleStruct) InvoiceGetall() ([]models.Invoice, bool) {
 		}
 		result = append(result, invoiceStruct)
 	}
-
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true
 }
 
@@ -190,8 +195,6 @@ func (sale *SaleStruct) InvoiceGetallByCustomerid(obj *int64) ([]models.Invoice,
 		log.Println(err)
 		return result, false
 	}
-	fmt.Println("",obj)
-fmt.Println("c",obj,invoiceStruct,result)
 	for query.Next() {
 		err = query.Scan(
 			&invoiceStruct.Id,
@@ -207,7 +210,10 @@ fmt.Println("c",obj,invoiceStruct,result)
 		}
 		result = append(result, invoiceStruct)
 	}
-
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true
 }
 
@@ -278,7 +284,10 @@ func (sale *SaleStruct) SaleGetByCustomerid(obj *int64) (models.InvoiceBillById,
 		result.Products = append(result.Products, value)
 
 	}
-	fmt.Println("", result)
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true, "Sucessfully Completed"
 }
 
@@ -340,9 +349,12 @@ func (sale *SaleStruct) SaleGetByBillid(obj *int64) (models.InvoiceBillById, boo
 		value.Price.Nop = valueprice.Nop
 		value.Quantity = productStruct.Quantity
 		result.Products = append(result.Products, value)
-fmt.Println("",value)
+
 	}
-	fmt.Println("", result)
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return result, true, "Successfully Completed"
 }
 
@@ -395,6 +407,10 @@ func (sale *SaleStruct) GetUserReportByDateRange(obj *models.GetUserReportByDate
 		result.Products = append(result.Products, value.Products...)
 		res = append(res, result)
 	}
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return res, true, "Successfully Completed"
 }
 
@@ -453,12 +469,13 @@ func (sale *SaleStruct) SaleGetByDate(obj *string) ([]models.InvoiceBillById, bo
 		value.Price.Nop = valueprice.Nop
 		value.Quantity = productStruct.Quantity
 		result.Products = append(result.Products, value)
-		res := append(res, result)
-
-		fmt.Println("", res)
+		res = append(res, result)
 	}
-
-	fmt.Println("", result)
+	
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
 	return res, true, "Sucessfully Completed"
 }
 
@@ -503,5 +520,8 @@ func (sale *SaleStruct) SaleDelete(obj *models.Invoice) (bool, string) {
 		}
 	}
 	txn.Commit()
-	return true, "User Deleted Sucessfully Completed"
+	defer func() {
+		Db.Close()
+	}()
+	return true, "User SaleEntry Deleted Sucessfully Completed"
 }

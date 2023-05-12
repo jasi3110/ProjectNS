@@ -31,6 +31,7 @@ func (unit *UnitController) UnitCreate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Error in Marshal Create Unit Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
 
@@ -60,6 +61,7 @@ func (unit *UnitController) UnitGetById(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		fmt.Println("Error in Marshal unit GetId Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
 
@@ -77,6 +79,7 @@ func (unit *UnitController) UnitGetAll(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Error in Marshal Unit GetAll Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
 
@@ -97,5 +100,6 @@ func (unit *UnitController) UnitUpdate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Error in Marshal Unit Update Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }

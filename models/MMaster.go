@@ -2,7 +2,7 @@ package models
 
 // CATEGORY
 type Category struct {
-	Id   string `json:"id"`
+	Id   int64 `json:"id"`
 	Name string `json:"name"`
 }
 
@@ -87,6 +87,6 @@ type UserAddressResponses struct {
 type GetAllUserAddressResponse struct {
 	Statuscode  int64         `json:"statuscode"`
 	Status      bool          `json:"status"`
-	Value       []UserAddress `json:"categorydata"`
+	Value       []UserAddress `json:"addressdata"`
 	Descreption string        `json:"desc"`
 }

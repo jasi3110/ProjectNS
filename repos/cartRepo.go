@@ -43,8 +43,9 @@ func (cart *CartStruct) CartUpdate(obj *models.RCart) (string, bool) {
 		fmt.Println("DB Disconnceted in cart Update")
 	}
 	fmt.Println("",obj)
-	err :=Db.QueryRow(`UPDATE "cart" SET quantity=$3 WHERE productid=$2 AND customerid=$1`,&obj.Id,&obj.Productid,&obj.Quantity)
-
+	query:=`UPDATE "cart" SET quantity=$3 WHERE productid=$2 AND customerid=$1`
+	_, err :=Db.Exec(query,&obj.Id,&obj.Productid,&obj.Quantity)
+	
 	if err != nil {
 		fmt.Println("Error in cart Update QueryRow :", err)
 		return  "Update Failed", false

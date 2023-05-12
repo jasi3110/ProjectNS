@@ -26,6 +26,13 @@ type UserPassword struct {
 type LoginUser struct {
 	Mobileno string `json:"mobileno"`
 	Password string `json:"password"`
+	
+}
+
+type UserChangePassword struct {
+	Id       int64 `json:"id"`
+	Password string `json:"password"`
+	NewPassword string `json:"newpassword"`
 }
 
 type UserResponseModel struct {

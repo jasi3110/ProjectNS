@@ -28,7 +28,7 @@ func CreateDbConnection() (*sql.DB, bool) {
 
 func OpenDbConnection() (*sql.DB, bool) {
 	const (
-		host     = "localhost"
+		host     = "localhost" 
 		port     = 5432
 		user     = "postgres"
 		password = "root"

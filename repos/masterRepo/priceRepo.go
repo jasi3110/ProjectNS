@@ -95,7 +95,9 @@ func (price *PriceStruct) PriceById(obj *models.Price) (models.Price, bool, stri
 		return priceStruct, false, "Failed"
 	}
 	err = query.QueryRow(obj.Id).Scan(&priceStruct.Id, &priceStruct.ProductId, &priceStruct.Mrp,&priceStruct.Nop, &priceStruct.Createdon)
-
+	percentage:= 100 - ((float64(priceStruct.Nop) / float64(priceStruct.Mrp)) * 100) 
+	
+	priceStruct.Percentage=int64(percentage)
 	if err != nil {
 		fmt.Println("Error in PriceById QueryRow Scan:", err)
 		return priceStruct, false, "Failed"

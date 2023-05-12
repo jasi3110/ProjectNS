@@ -1,11 +1,12 @@
 package models
 
 type Price struct {
-	Id        int64  `json:"id"`
-	ProductId int64  `json:"productid"`
-	Mrp       float64  `json:"mrp"`
-	Nop       float64  `json:"nop"`
-	Createdon string `json:"createdon"`
+	Id         int64   `json:"id"`
+	ProductId  int64   `json:"productid"`
+	Mrp        float64 `json:"mrp"`
+	Nop        float64 `json:"nop"`
+	Percentage int64 `json:"percentage"`
+	Createdon  string  `json:"createdon"`
 }
 
 type PriceResponses struct {

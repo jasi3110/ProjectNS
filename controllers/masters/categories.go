@@ -31,6 +31,7 @@ func (category *CategoryController) CategoryCreate(w http.ResponseWriter, r *htt
 	if err != nil {
 		fmt.Println("Error in Marshal CategoryCreate Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
@@ -52,19 +53,19 @@ func (category *CategoryController) CategoryUpdate(w http.ResponseWriter, r *htt
 	if err != nil {
 		fmt.Println("Error in Marshal CategoryUpdate Response:", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
 func (category *CategoryController) CategoryGetById(w http.ResponseWriter, r *http.Request) {
 	request := mux.Vars(r)
 	id, err := strconv.ParseInt(request["id"], 10, 64)
-	categoryid := strconv.FormatInt(id, 10)
 	if err != nil {
 		fmt.Println("Error in Decoding  CategoryGetById Request :", err)
 	}
 
 	CategoryStruct := models.Category{
-		Id: categoryid,
+		Id:id,
 	}
 	if err != nil {
 		fmt.Println(err)
@@ -81,6 +82,7 @@ func (category *CategoryController) CategoryGetById(w http.ResponseWriter, r *ht
 	if err != nil {
 		fmt.Println("Error in Marshal CategoryGetById Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
@@ -98,6 +100,7 @@ func (category *CategoryController) CategoryGetAll(w http.ResponseWriter, r *htt
 	if err != nil {
 		fmt.Println("Error in Marshal CategoryGetAll Response :",err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 

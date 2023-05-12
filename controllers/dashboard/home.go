@@ -100,6 +100,6 @@ result=append(result, val12)
 	if err != nil {
 		fmt.Println("Error in Marshal Dashboard in Homepage Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
-
 }

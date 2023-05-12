@@ -32,10 +32,9 @@ func (cart *CartController) CartCreate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Error in Marshal CartCreate Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
-
-
 
 func (cart *CartController) CartUpdate(w http.ResponseWriter, r *http.Request) {
 	request := models.RCart{}
@@ -56,8 +55,6 @@ func (cart *CartController) CartUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Write(resp)
 }
-
-
 
 func (cart *CartController) CartGetAll(w http.ResponseWriter, r *http.Request) {
 	request := mux.Vars(r)
@@ -80,10 +77,9 @@ func (cart *CartController) CartGetAll(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Error in Marshal CartGetAll Response :",err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
-
-
 
 func (cart *CartController) CartProductDelete(w http.ResponseWriter, r *http.Request) {
 	request := models.RCart{}
@@ -108,13 +104,11 @@ func (cart *CartController) CartProductDelete(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		log.Println("Error in Marshal Cart Product Delete Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
-
-
-
-func (cart *CartController) CartDelete(w http.ResponseWriter, r *http.Request) {
+func (cart *CartController) CartDelete(w http.ResponseWriter, r *http.Request) { 
 	request := models.RCart{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	
@@ -135,5 +129,6 @@ func (cart *CartController) CartDelete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Error in Marshal Cart Delete Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }

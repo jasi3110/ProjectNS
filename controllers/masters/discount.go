@@ -30,6 +30,7 @@ func (discount *DiscountController) DiscountCreate(w http.ResponseWriter, r *htt
 	if err != nil {
 		fmt.Println("Error in Marshal RoleCreate Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
@@ -50,6 +51,7 @@ func (discount *DiscountController) DiscountUpdate(w http.ResponseWriter, r *htt
 	if err != nil {
 		fmt.Println("Error in Marshal RoleUpdate Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
 
@@ -76,6 +78,7 @@ func (discount *DiscountController) DiscountGetById(w http.ResponseWriter, r *ht
 	if err != nil {
 		fmt.Println("Error in Marshal Discpunt Product GetById Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
 
@@ -94,5 +97,6 @@ func (discount *DiscountController) DiscountGetAll(w http.ResponseWriter, r *htt
 	if err != nil {
 		fmt.Println("Error in Marshal RoleGetAll Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }

@@ -33,6 +33,7 @@ func (Price *PriceController) PriceCreate(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		fmt.Println("Error in Marshal RoleCreate Response :", err,value)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
 
@@ -53,6 +54,7 @@ func (price *PriceController) PriceUpdate(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		fmt.Println("Error in Marshal PriceUpdate Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
 
@@ -81,6 +83,7 @@ func (price *PriceController) PriceGetById(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		fmt.Println("Error in Marshal PriceGetById Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
 
@@ -102,6 +105,7 @@ func (price *PriceController) PriceGetByDate(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		fmt.Println("Error in Marshal PriceGetById Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
 
@@ -119,6 +123,7 @@ func (price *PriceController) PriceGetAll(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		fmt.Println("Error in Marshal RoleGetAll Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
 
@@ -140,5 +145,6 @@ func (price *PriceController) PriceProductGetAll(w http.ResponseWriter, r *http.
 	if err != nil {
 		fmt.Println("Error in Marshal PriceProductGetAll Response :", err)
 	}
+	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
