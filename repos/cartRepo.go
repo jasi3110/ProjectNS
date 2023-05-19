@@ -4,13 +4,13 @@ import (
 	"OnlineShop/models"
 	"OnlineShop/utls"
 	"fmt"
-	"strconv"
+	// "strconv"
 )
 
 type CartInterface interface {
 	Createcart(obj *models.RCart) (bool, string)
 	CartUpdate(obj *models.RCart) (string, bool)
-	CartGetAll(obj *int64) (models.GetAllCartResponse, bool, string)
+	CartGetAll(obj *int64) (models.GetAllCart, bool, string)
 
 
 	CartProductDelete(obj *models.RCart) (bool, string)
@@ -24,8 +24,25 @@ func (cart *CartStruct) Createcart(obj *models.RCart) (bool, string) {
 	if !isconnceted {
 		fmt.Println("DB Disconnceted in Create cart")
 	}
-
-	err := Db.QueryRow(`INSERT INTO "cart" (customerid,productid,quantity)values($1,$2,$3)RETURNING id`,
+	query, err := Db.Query(`SELECT customerid,productid FROM "cart"`)
+	if err != nil {
+		fmt.Println("Error in CreateUser Checking User verfiy QueryRow :", err)
+	}
+	cartStruct := models.RCart{}
+	for query.Next() {
+		query.Scan(&cartStruct.Id, &cartStruct.Productid)
+		if obj.Id == cartStruct.Id && obj.Productid == cartStruct.Productid {
+			query:=`UPDATE "cart" SET quantity=$3 WHERE productid=$2 AND customerid=$1`
+	_, err =Db.Exec(query,&obj.Id,&obj.Productid,&obj.Quantity)
+	if err != nil {
+		fmt.Println("Error in Create cart QueryRow :", err)
+		return false, " Create cart Failed "
+	}
+	fmt.Println("ereeee")
+	return true,  " Create cart Sucessfully "
+		}
+	}
+	err = Db.QueryRow(`INSERT INTO "cart" (customerid,productid,quantity)values($1,$2,$3)RETURNING id`,
 	 obj.Id,obj.Productid,obj.Quantity).Scan(&obj.Id)
 	if err != nil {
 		fmt.Println("Error in Create cart QueryRow :", err)
@@ -34,7 +51,8 @@ func (cart *CartStruct) Createcart(obj *models.RCart) (bool, string) {
 	defer func() {
 		Db.Close()
 	}()
-	return true, "cart Successfully Created"
+	fmt.Println("CART REPO")
+	return true, " Create cart sucessfully "
 }
 
 func (cart *CartStruct) CartUpdate(obj *models.RCart) (string, bool) {
@@ -51,49 +69,48 @@ func (cart *CartStruct) CartUpdate(obj *models.RCart) (string, bool) {
 		return  "Update Failed", false
 	}
 	defer func() {
+
 		Db.Close()
 	}()
 	return "Successfully Updated", true
 }
 
-func (cart *CartStruct) CartGetAll(obj *int64) (models.GetAllCartResponse, bool, string) {
+func (cart *CartStruct) CartGetAll(obj *int64) (models.GetAllCart, bool, string) {
 	Db, isConnected := utls.CreateDbConnection()
 	if !isConnected {
 		fmt.Println("DB Disconnceted in cart GetAll")
 	}
-	result :=models.GetAllCartResponse{}
+	result :=models.GetAllCart{}
 	cartStruct:=models.Cart{}
 
-	 query,err := Db.Query(`SELECT id,productid,quantity FROM "cart" WHERE customerid=$1`,obj)
+	 query,err := Db.Query(`SELECT productid,quantity FROM "cart" WHERE customerid=$1`,obj)
 	if err != nil {
 		fmt.Println("Error in cart GetAll QueryRow :", err)
 		return result, false, "failed"
 	}
+	// var productchannel chan models.ProductAll
 	for query.Next() {
 		err = query.Scan(
-			&cartStruct.Id,
 			&cartStruct.Product.Id,
 			&cartStruct.Product.Quantity)
 		if err != nil {
 			fmt.Println("Error in cart GetAll QueryRow Scan :", err)
 			return result, false, "failed"
 		}
+		
 		productRepo:=ProductInterface(&ProductStruct{})
-value,status,descreption:=productRepo.GetProductById(&cartStruct.Product.Id)
+		value, _,_:= productRepo.GetProductById(&cartStruct.Product.Id)
+
 value.Quantity = cartStruct.Product.Quantity
-cartStruct.Product = value
-
-productqty, _ := strconv.ParseFloat(value.Quantity, 32)
-
-
-result.Total= result.Total + (value.Price.Nop*productqty)
-result.Items  = result.Items + 1
-result.Productdiscoiunt =result.Productdiscoiunt + (value.Price.Mrp - value.Price.Nop)
-if !status {
-	fmt.Println(descreption)
-	return result, false, descreption
-}
-		result.Value = append(result.Value, cartStruct)
+// cartStruct.Product = value
+ 
+// productqty, _ := strconv.ParseFloat(value.Quantity, 32)
+// fmt.Println("",value.Price.Mrp*productqty)
+// value.Price.Mrp =value.Price.Mrp*productqty
+// value.Price.Nop=value.Price.Nop*productqty
+// result.Items  = result.Items + 1
+// result.Productdiscoiunt =(result.Productdiscoiunt + (value.Price.Mrp - value.Price.Nop))*productqty
+		result.Value = append(result.Value, value)
 	}
 	defer func() {
 		Db.Close()

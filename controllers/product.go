@@ -25,11 +25,22 @@ func (Product *Product) ProductCreate(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		fmt.Println("Error in Decoding ProductCreate Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := repos.ProductInterface(&repos.ProductStruct{})
 	descreption, status := repo.ProductCreate(&request)
 	response := models.CommanRespones{
-		Statuscode:  200,
+		Statuscode:   200,
 		Status:      status,
 		Descreption: descreption,
 	}
@@ -41,17 +52,29 @@ func (Product *Product) ProductCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
+}
 
 func (Product *Product) ProductUpdate(w http.ResponseWriter, r *http.Request) {
 	request := models.Product{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		log.Println("Error in Decoding ProductUpdate Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := repos.ProductInterface(&repos.ProductStruct{})
 	result, status := repo.ProductUpdate(&request)
 	response := models.CommanRespones{
-		Statuscode:  200,
+		Statuscode:   200,
 		Status:      status,
 		Descreption: result,
 	}
@@ -62,17 +85,29 @@ func (Product *Product) ProductUpdate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
+}
 
 func (Product *Product) ProductDelete(w http.ResponseWriter, r *http.Request) {
 	request := models.Product{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		log.Println("Error in Decoding ProductDelete Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := repos.ProductInterface(&repos.ProductStruct{})
 	 status,result := repo.ProductDelete(&request)
 	response := models.CommanRespones{
-		Statuscode:  200,
+		Statuscode:   200,
 		Status:      status,
 		Descreption: result,
 	}
@@ -83,6 +118,7 @@ func (Product *Product) ProductDelete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
+}
 
 func (Product *Product) ProductGetById(w http.ResponseWriter, r *http.Request) {
 
@@ -91,13 +127,24 @@ func (Product *Product) ProductGetById(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Println("Error in Decoding ProductGetById Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := repos.ProductInterface(&repos.ProductStruct{})
-
+	// var productchannel chan models.ProductAll
 	value, status, descreption := repo.GetProductById(&id)
 	
 	response := models.ProductResponses{
-		Statuscode:  200,
+		Statuscode:   200,
 		Status:      status,
 		Value:       value,
 		Descreption: descreption,
@@ -109,13 +156,14 @@ func (Product *Product) ProductGetById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
+}
 
 func (product *Product) ProductGetAll(w http.ResponseWriter, r *http.Request) {
 
 	Repo := repos.ProductInterface(&repos.ProductStruct{})
 	value, status, descreption := Repo.ProductGetAll()
 	response := models.GetAllProductResponse{
-		Statuscode:  200,
+		Statuscode:   200,
 		Status:      status,
 		Value:       value,
 		Descreption: descreption,
@@ -135,7 +183,18 @@ func (Product *Product) ProductGetAllByCategory(w http.ResponseWriter, r *http.R
 
 	if err != nil {
 		fmt.Println("Error in Decoding ProductGetALLByCategory  Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := repos.ProductInterface(&repos.ProductStruct{})
 
 	value, status, descreption := repo.ProductGetAllByCategory(&id)
@@ -153,6 +212,7 @@ func (Product *Product) ProductGetAllByCategory(w http.ResponseWriter, r *http.R
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
+}
 
 func (Product *Product) ProductGetAllByUnit(w http.ResponseWriter, r *http.Request) {
 
@@ -161,13 +221,24 @@ func (Product *Product) ProductGetAllByUnit(w http.ResponseWriter, r *http.Reque
 
 	if err != nil {
 		fmt.Println("Error in Decoding ProductGetALLByUnit  Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := repos.ProductInterface(&repos.ProductStruct{})
 
 	value, status, descreption := repo.ProductGetAllByUnit(&id)
 	
 	response := models.GetAllProductResponse{
-		Statuscode:  200,
+		Statuscode:   200,
 		Status:      status,
 		Value:       value,
 		Descreption: descreption,
@@ -178,6 +249,7 @@ func (Product *Product) ProductGetAllByUnit(w http.ResponseWriter, r *http.Reque
 	}
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
+}
 }
 
 func (Product *Product) ProductSearchBar(w http.ResponseWriter, r *http.Request) {

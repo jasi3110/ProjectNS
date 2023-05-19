@@ -21,7 +21,18 @@ func (Price *PriceController) PriceCreate(w http.ResponseWriter, r *http.Request
 	err := json.NewDecoder(r.Body).Decode(&requst)
 	if err != nil {
 		fmt.Println("Error in Decoding RoleCreate Request :", err)
-	} 
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{ 
 	repo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
 	status, descreption ,value:= repo.CreatePrice(&requst)
 	response := models.CommanRespones{
@@ -36,13 +47,25 @@ func (Price *PriceController) PriceCreate(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
+}
 
 func (price *PriceController) PriceUpdate(w http.ResponseWriter, r *http.Request) {
 	request := models.Price{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		fmt.Println("Error in Decoding PriceUpdate Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	Repo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
 	descreption, status := Repo.PriceUpdate(&request)
 	response := models.CommanRespones{
@@ -57,6 +80,7 @@ func (price *PriceController) PriceUpdate(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
+}
 
 func (price *PriceController) PriceGetById(w http.ResponseWriter, r *http.Request) {
 	request := mux.Vars(r)
@@ -64,7 +88,18 @@ func (price *PriceController) PriceGetById(w http.ResponseWriter, r *http.Reques
 	
 	if err != nil {
 		fmt.Println("Error in Decoding PriceGetById Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	priceStruct := models.Price{
 		Id: id,
 	}
@@ -86,13 +121,25 @@ func (price *PriceController) PriceGetById(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
+}
 
 func (price *PriceController) PriceGetByDate(w http.ResponseWriter, r *http.Request) {
 	request := models.Price{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		fmt.Println("Error in Decoding PriceGetbyDate Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
 	value, status, descreption := repo.PriceByDate(&request)
 	response := models.PriceResponses{
@@ -107,6 +154,7 @@ func (price *PriceController) PriceGetByDate(w http.ResponseWriter, r *http.Requ
 	}
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
+}
 }
 
 func (price *PriceController) PriceGetAll(w http.ResponseWriter, r *http.Request) {
@@ -132,7 +180,18 @@ func (price *PriceController) PriceProductGetAll(w http.ResponseWriter, r *http.
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		fmt.Println("Error in Decoding PriceProductGetAll Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
 	value, status, descreption := repo.PriceProductGetAll(&request)
 	response := models.GetAllPriceResponse{
@@ -147,4 +206,5 @@ func (price *PriceController) PriceProductGetAll(w http.ResponseWriter, r *http.
 	}
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
+}
 }

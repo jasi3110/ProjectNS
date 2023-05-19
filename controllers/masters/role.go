@@ -19,7 +19,18 @@ func (role *RoleController) RoleCreate(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&requst)
 	if err != nil {
 		fmt.Println("Error in Decoding RoleCreate Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := masterrepo.RoleInterface(&masterrepo.RoleStruct{})
 	status, descreption := repo.CreateRole(&requst)
 	response := models.CommanRespones{
@@ -34,13 +45,25 @@ func (role *RoleController) RoleCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
+}
 
 func (role *RoleController) RoleUpdate(w http.ResponseWriter, r *http.Request) {
 	request:= models.Role{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		fmt.Println("Error in Decoding RoleUpdate Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	Repo := masterrepo.RoleInterface(&masterrepo.RoleStruct{})
 	descreption, status := Repo.RoleUpdate(&request)
 	response := models.CommanRespones{
@@ -55,6 +78,7 @@ func (role *RoleController) RoleUpdate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
+}
 
 func (role *RoleController) RoleGetById(w http.ResponseWriter, r *http.Request) {
 	request := mux.Vars(r)
@@ -62,7 +86,18 @@ func (role *RoleController) RoleGetById(w http.ResponseWriter, r *http.Request) 
 	roleid := strconv.FormatInt(id, 10)
 	if err != nil {
 		fmt.Println("Error in Decoding RoleGetById Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	roleStruct := models.Role{
 		Id: roleid,
 	}
@@ -83,6 +118,7 @@ func (role *RoleController) RoleGetById(w http.ResponseWriter, r *http.Request) 
 	}
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
+}
 }
 
 func (role *RoleController) RoleGetAll(w http.ResponseWriter, r *http.Request) {

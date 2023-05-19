@@ -21,7 +21,7 @@ type UserInterface interface {
 
 	Userverify(obj *models.Userverify) (int64, bool, string)
 	UserCheckOtp(obj *models.Userverify) (models.UserPassword, bool, string)
-	UserUpdatePassword(obj *models.UserPassword) (string, bool)
+	UserUpdatePassword(obj *models.UserChangePassword) (string, bool)
 }
 
 type UserRepo struct {
@@ -42,7 +42,7 @@ func (user *UserRepo) UserCreate(obj *models.User) (string, bool) {
 		query.Scan(&userStruct.Email, &userStruct.Mobileno)
 		if obj.Mobileno == userStruct.Mobileno || obj.Email == userStruct.Email {
 			fmt.Println("This Mobile number or Email already Used ")
-			return "this Mobile number or Email already Used by Other User ", false
+			return "This Mobile Number or Email already Used by Other Customer ", false
 		}
 	}
 	err = Db.QueryRow(`INSERT into "user"(
@@ -69,13 +69,13 @@ func (user *UserRepo) UserCreate(obj *models.User) (string, bool) {
 
 	if err != nil {
 		fmt.Println("Error in CreateUser  QueryRow Scan :", err)
-		return "User Create Failed", false
+		return " Creating User Failed", false
 	}
 	defer func() {
 		Db.Close()
 		query.Close()
 	}()
-	return "User created Successfully", true
+	return "WELCOME TO NATIONAL STORE ", true
 }
 
 func (user *UserRepo) UserLogin(obj *models.LoginUser) (models.User, bool, string) {
@@ -95,7 +95,7 @@ func (user *UserRepo) UserLogin(obj *models.LoginUser) (models.User, bool, strin
 	if err != nil {
 		log.Println("Error in User Login QueryRow :", err)
 
-		return userStruct, false, "User Login  Failed"
+		return userStruct, false, "Invaild Mobile Number Or Password"
 	}
 
 	err = query.QueryRow(obj.Mobileno, obj.Password).Scan(&userStruct.Id,
@@ -108,22 +108,22 @@ func (user *UserRepo) UserLogin(obj *models.LoginUser) (models.User, bool, strin
 	)
 	if err != nil {
 		log.Println("Error in User Login QueryRow Scan :", err)
-		return userStruct, false, "User Login  Failed"
+		return userStruct, false, "Invaild Mobile Number Or Password"
 	}
 
 	Token := utls.GenerateJwtToken(userStruct.Id, userStruct.Mobileno, userStruct.Email)
 	// log.Println(userStruct.Id, Token)
 	_, err = Db.Query(`UPDATE "user" SET token = $2 WHERE id=$1 and isdeleted=0`, &userStruct.Id, &Token)
-
+	userStruct.Token = Token
 	if err != nil {
 		log.Println("Error in User Login Update TOKEN QueryRow :", err)
-		return userStruct, false, "User Login  Failed"
+		return userStruct, false, "Invaild Mobile Number Or Password"
 	}
 	defer func() {
 		Db.Close()
 		query.Close()
 	}()
-	return userStruct, true, "User Login Successfully Completed"
+	return userStruct, true, "WELCOME TO NATIONAL STORE "
 }
 
 func (user *UserRepo) UserUpdateEmail(obj *models.UserUpdate) (models.UserUpdate, bool, string) {
@@ -141,36 +141,33 @@ func (user *UserRepo) UserUpdateEmail(obj *models.UserUpdate) (models.UserUpdate
 		if userStruct.Id != obj.Id {
 			if obj.Email == userStruct.Email {
 				fmt.Println(" Email already Used By Other User")
-				return *obj, false, " Email already Used By Other User"
+			return *obj, false, "THis Email already Used By Other Customer"
 			}
 		}
 
 	}
-	query1:=`UPDATE "user" SET email = $2 WHERE id = $1  RETURNING mobileno`
+	query1 := `UPDATE "user" SET email = $2 WHERE id = $1  RETURNING mobileno`
 
 	err = Db.QueryRow(query1, &obj.Id, &obj.Email).Scan(&obj.Mobileno)
-fmt.Println("",obj)
+	fmt.Println("", obj)
 	if err != nil {
 		fmt.Println("Error in User Update Email QueryRow :", err)
-		return *obj, false, "User Update Email Failed"
+		return *obj, false, " Update Email Failed"
 	}
-	Token := utls.GenerateJwtToken(obj.Id,obj.Mobileno,obj.Email)
+	Token := utls.GenerateJwtToken(obj.Id, obj.Mobileno, obj.Email)
 	// log.Println(userStruct.Id, Token)
 	_, err = Db.Query(`UPDATE "user" SET token = $2 WHERE id=$1 and isdeleted=0`, &obj.Id, &Token)
 
 	if err != nil {
 		log.Println("Error in User User  Update TOKEN in Update Email QueryRow :", err)
-		return *obj, false, "User Update Token Failed"
+		return *obj, false, " Update Email Failed"
 	}
 	defer func() {
 		Db.Close()
 		query.Close()
 	}()
-	return *obj, true, "User Updated Email Successfully"
+	return *obj, true, "Email Updated  Successfully"
 }
-
-
-
 
 func (user *UserRepo) UserDelete(obj *models.User) (bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
@@ -196,17 +193,17 @@ func (user *UserRepo) UserChangePassword(obj *models.UserChangePassword) (string
 		fmt.Println("DB Disconnceted in User Update Password ")
 	}
 
-	query := `UPDATE "user" SET password = $3 WHERE id=$1 and password=$2 and isdeleted=0`
-	_, err := Db.Exec(query, &obj.Id, &obj.Password, &obj.NewPassword)
+	query := `UPDATE "user" SET password = $2 WHERE id=$1  AND isdeleted=0`
+	qq, err := Db.Exec(query, &obj.Id, &obj.Password)
 
 	if err != nil {
-		fmt.Println("Error in User Change Password QueryRow :")
-		return "incorrect Password ", false
+		fmt.Println("Error in User Change Password QueryRow :", err, qq)
+		return "incorrect Password", false
 	}
 	defer func() {
 		Db.Close()
 	}()
-	return "User Password Update Successfully Completed", true
+	return "Password changed  Successfully", true
 }
 
 func (user *UserRepo) UserGetall() ([]models.User, bool) {
@@ -365,21 +362,21 @@ func (user *UserRepo) UserCheckOtp(obj *models.Userverify) (models.UserPassword,
 	return userStruct, true, "Successfully Compelted"
 }
 
-func (user *UserRepo) UserUpdatePassword(obj *models.UserPassword) (string, bool) {
+func (user *UserRepo) UserUpdatePassword(obj *models.UserChangePassword) (string, bool) {
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
 		fmt.Println("DB Disconnceted in User Update Password ")
 	}
 
 	query := `UPDATE "user" SET password = $2 WHERE id=$1 and isdeleted=0`
-	_, err := Db.Exec(query, &obj.Id, &obj.Password)
+	_, err := Db.Exec(query, &obj.Id, &obj.NewPassword)
 
 	if err != nil {
 		fmt.Println("Error in User Update Password QueryRow :")
-		return "User Password Update Failed", false
+		return "Use Other Password", false
 	}
 	defer func() {
 		Db.Close()
 	}()
-	return "User Password Update Successfully Completed", true
+	return "User Password Changed Successfully Completed", true
 }

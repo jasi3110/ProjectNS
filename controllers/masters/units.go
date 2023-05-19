@@ -19,7 +19,18 @@ func (unit *UnitController) UnitCreate(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&requst)
 	if err != nil {
 		fmt.Println("Error in Decoding Create Unit Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := masterrepo.UnitInterface(&masterrepo.UnitStruct{})
 	status, descreption := repo.CreateUnit(&requst)
 	response := models.CommanRespones{
@@ -34,6 +45,7 @@ func (unit *UnitController) UnitCreate(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
 }
+}
 
 func (unit *UnitController) UnitGetById(w http.ResponseWriter, r *http.Request) {
 	request := mux.Vars(r)
@@ -41,7 +53,18 @@ func (unit *UnitController) UnitGetById(w http.ResponseWriter, r *http.Request) 
 	unitid := strconv.FormatInt(id, 10)
 	if err != nil {
 		fmt.Println("Error in Decoding Unit GetId Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 
 	UnitStruct := models.Unit{
 		Id: unitid,
@@ -63,6 +86,7 @@ func (unit *UnitController) UnitGetById(w http.ResponseWriter, r *http.Request) 
 	}
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
+}
 }
 
 func (unit *UnitController) UnitGetAll(w http.ResponseWriter, r *http.Request) {
@@ -88,7 +112,18 @@ func (unit *UnitController) UnitUpdate(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		fmt.Println("Error in Decoding Unit Update Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := masterrepo.UnitInterface(&masterrepo.UnitStruct{})
 	descreption, status := repo.UnitUpdate(&request)
 	response := models.CommanRespones{
@@ -102,4 +137,5 @@ func (unit *UnitController) UnitUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(respone)
+}
 }

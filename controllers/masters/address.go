@@ -19,7 +19,19 @@ func (UserAddress *UserAddressController) UserAddressCreate(w http.ResponseWrite
 	err := json.NewDecoder(r.Body).Decode(&requst)
 	if err != nil {
 		fmt.Println("Error in Decoding UserAddressCreate Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
+	
 	repo := masterrepo.UserAddressInterface(&masterrepo.UserAddressStruct{})
 	status, descreption := repo.UserAddressCreate(&requst)
 	response := models.CommanRespones{
@@ -33,14 +45,25 @@ func (UserAddress *UserAddressController) UserAddressCreate(w http.ResponseWrite
 	}
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
-}
+}}
 
 func (UserAddress *UserAddressController) UserAddressUpdate(w http.ResponseWriter, r *http.Request) {
 	request := models.UserAddress{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		fmt.Println("Error in Decoding UserAddressUpdate Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := masterrepo.UserAddressInterface(&masterrepo.UserAddressStruct{})
 	value, descreption, status := repo.UserAddressUpdate(&request)
 	response := models.UserAddressResponses{
@@ -55,14 +78,25 @@ func (UserAddress *UserAddressController) UserAddressUpdate(w http.ResponseWrite
 	}
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
-}
+}}
 
 func (UserAddress *UserAddressController) UserAddressDelete(w http.ResponseWriter, r *http.Request) {
 	request := models.UserAddress{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		fmt.Println("Error in Decoding UserAddressDelete Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := masterrepo.UserAddressInterface(&masterrepo.UserAddressStruct{})
    status, descreption := repo.UserAddressDelete(&request)
 	response := models.CommanRespones{
@@ -77,6 +111,7 @@ func (UserAddress *UserAddressController) UserAddressDelete(w http.ResponseWrite
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
+}
 
 func (UserAddress *UserAddressController) UserAddressGetById(w http.ResponseWriter, r *http.Request) {
 	request := mux.Vars(r)
@@ -84,7 +119,19 @@ func (UserAddress *UserAddressController) UserAddressGetById(w http.ResponseWrit
 	// useraddressid := strconv.FormatInt(id, 10)
 	if err != nil {
 		fmt.Println("Error in Decoding  UserAddressGetById Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
+	
 
 	UserAddressStruct := models.UserAddress{
 		Id: id,
@@ -106,6 +153,7 @@ func (UserAddress *UserAddressController) UserAddressGetById(w http.ResponseWrit
 	}
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
+}
 }
 
 func (UserAddress *UserAddressController) UserAddressGetAll(w http.ResponseWriter, r *http.Request) {
@@ -132,7 +180,18 @@ func (UserAddress *UserAddressController) UserAddressGetAllCustomer(w http.Respo
 	// useraddressid := strconv.FormatInt(id, 10)
 	if err != nil {
 		fmt.Println("Error in Decoding  UserAddressGetById Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := masterrepo.UserAddressInterface(&masterrepo.UserAddressStruct{})
 	value, status, descreption := repo.UserAddressGetAllCustomer(&id)
 	response := models.GetAllUserAddressResponse{
@@ -147,4 +206,5 @@ func (UserAddress *UserAddressController) UserAddressGetAllCustomer(w http.Respo
 	}
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
+}
 }

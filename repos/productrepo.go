@@ -3,6 +3,7 @@ package repos
 import (
 	"OnlineShop/models"
 	"OnlineShop/repos/masterRepo"
+	// "sync"
 
 	// "sync"
 
@@ -80,7 +81,7 @@ func (product *ProductStruct) ProductCreate(obj *models.Product) (string, bool) 
 		Db.Close()
 	}()
 	return "Product Created Successfully", true
-}
+} 
 
 func (product *ProductStruct) ProductUpdate(obj *models.Product) (string, bool) {
 	Db, isconnceted := utls.OpenDbConnection()
@@ -184,6 +185,7 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.ProductAll, boo
 	}()
 	return productStruct, true, "Successfully Completed"
 }
+ 
 
 func (product *ProductStruct) ProductGetAll() ([]models.ProductAll, bool, string) {
 	Db, isConnected := utls.OpenDbConnection()
@@ -197,17 +199,13 @@ func (product *ProductStruct) ProductGetAll() ([]models.ProductAll, bool, string
 	if err != nil {
 		log.Println(err)
 	}
+	// var productchannel chan models.ProductAll
 	for query.Next() {
 		err := query.Scan(&productStruct.Id)
-		value, status, descreption := product.GetProductById(&productStruct.Id)
-
+		value, _, _ :=product.GetProductById(&productStruct.Id)
 		if err != nil {
 			fmt.Println("Error in Product GetAll QueryRow :", err)
 			return result, false, "failed to  Get All Product Data"
-		}
-		if !status {
-			fmt.Println(descreption)
-			return result, false, descreption
 		}
 		result = append(result, value)
 	}
@@ -231,18 +229,16 @@ func (product *ProductStruct) ProductGetAllByCategory(obj *int64) ([]models.Prod
 		fmt.Println("Error in Product GetAll By Category  QueryRow :", err)
 		return result, false, "failed"
 	}
+	// var productchannel chan models.ProductAll
 	for query.Next() {
 		err := query.Scan(&productStruct.Id)
-		value, status, descreption := product.GetProductById(&productStruct.Id)
+		value, _,_:= product.GetProductById(&productStruct.Id)
 
 		if err != nil {
 			fmt.Println("Error in Product GetAll Category QueryRow :", err)
 			return result, false, "failed"
 		}
-		if !status {
-			fmt.Println(descreption)
-			return result, false, descreption
-		}
+
 		result = append(result, value)
 	}
 	defer func() {
@@ -265,6 +261,7 @@ func (product *ProductStruct) ProductGetAllByUnit(obj *int64) ([]models.ProductA
 		fmt.Println("Error in Product GetAll By Unit QueryRow :", err)
 		return result, false, "failed"
 	}
+	// var Result chan models.ProductAll
 	for query.Next() {
 		err := query.Scan(&productStruct.Id)
 		value, status, descreption := product.GetProductById(&productStruct.Id)
@@ -319,7 +316,14 @@ if err != nil {
 		fmt.Println("Error in Product SearchBar QueryRow :", err)
 		return result, false
 	}
-	
+	priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
+	value, status, descreption := priceRepo.PriceById(&productStruct.Price)
+
+	productStruct.Price = value
+	if !status {
+		fmt.Println("Error in Product GetbyId price ById QueryRow :", descreption)
+		return result, false
+	}
 		// fmt.Println("",result)
 		result = append(result, productStruct)
 	}

@@ -26,7 +26,7 @@ func (sale *SaleController) SaleEntry(w http.ResponseWriter, r *http.Request) {
 Repo:=repos.SaleInterface(&repos.SaleStruct{})
 status,descreption,value:=Repo.CreateSale(&request)
 response:=models.SaleCommanRespones{
-	Statuscode:  http.StatusAccepted,
+	Statuscode: 200,
 	Status:      status,
 	Value: value,
 	Descreption:descreption,
@@ -43,12 +43,12 @@ w.Write(resp)
 func (sale *SaleController) SaleInvoiceGetAll(w http.ResponseWriter, r *http.Request) {
 
 	Repo := repos.SaleInterface(&repos.SaleStruct{})
-	value, status:= Repo.InvoiceGetall()
+	value, status,descreption:= Repo.InvoiceGetall()
 	response := models.GetAllSaleInvoiceResponse{
 		Statuscode:  200,
 		Status:      status,
 		Value:       value,
-		Descreption:"",
+		Descreption:descreption,
 	}
 	resp, err := json.Marshal(response)
 	if err != nil {
@@ -67,7 +67,7 @@ func (sale *SaleController) InvoiceGetallByCustomerid(w http.ResponseWriter, r *
 	Repo := repos.SaleInterface(&repos.SaleStruct{})
 	value, status:= Repo.InvoiceGetallByCustomerid(&id)
 	response := models.GetAllSaleInvoiceResponse{
-		Statuscode:  200,
+		Statuscode:   200,
 		Status:      status,
 		Value:       value,
 		Descreption:"ssvs",
@@ -87,7 +87,18 @@ func (sale *SaleController) SaleGetByBillId(w http.ResponseWriter, r *http.Reque
 
 	if err != nil {
 		fmt.Println("Error in Decoding SaleGetByBillId Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := repos.SaleInterface(&repos.SaleStruct{})
 
 	value, status, descreption := repo.SaleGetByBillid(&id)
@@ -105,6 +116,7 @@ func (sale *SaleController) SaleGetByBillId(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
+}
 
 func (sale *SaleController) SaleGetByCustomerid(w http.ResponseWriter, r *http.Request) {
 
@@ -113,13 +125,24 @@ func (sale *SaleController) SaleGetByCustomerid(w http.ResponseWriter, r *http.R
 
 	if err != nil {
 		fmt.Println("Error in Decoding SaleGetByBillId Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := repos.SaleInterface(&repos.SaleStruct{})
 
 	value, status, descreption := repo.SaleGetByCustomerid(&id)
 	
 	response := models. GetAllSaleInvoiceGetByBillIdResponse{
-		Statuscode:  200,
+		Statuscode:   200,
 		Status:      status,
 		Value:       value,
 		Descreption: descreption,
@@ -131,6 +154,7 @@ func (sale *SaleController) SaleGetByCustomerid(w http.ResponseWriter, r *http.R
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
+}
 
 func (sale *SaleController) GetUserReportByDateRange(w http.ResponseWriter, r *http.Request) {
 
@@ -138,7 +162,18 @@ func (sale *SaleController) GetUserReportByDateRange(w http.ResponseWriter, r *h
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err!=nil {
 		fmt.Println("Error in Decoding  GetUserReportByDateRange Requst :",err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	
 
 	if err != nil {
@@ -161,6 +196,7 @@ func (sale *SaleController) GetUserReportByDateRange(w http.ResponseWriter, r *h
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
+}
 
 func (sale *SaleController) SaleDelete(w http.ResponseWriter, r *http.Request) {
 	request := mux.Vars(r)
@@ -170,7 +206,18 @@ func (sale *SaleController) SaleDelete(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		fmt.Println("Error in Decoding UserGetById Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := repos.SaleInterface(&repos.SaleStruct{})
 
 	 status, descreption := repo.SaleDelete(&billid)
@@ -187,4 +234,5 @@ func (sale *SaleController) SaleDelete(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
+}
 }

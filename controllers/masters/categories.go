@@ -19,7 +19,18 @@ func (category *CategoryController) CategoryCreate(w http.ResponseWriter, r *htt
 	err := json.NewDecoder(r.Body).Decode(&requst)
 	if err != nil {
 		fmt.Println("Error in Decoding CategoryCreate Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := masterrepo.CategoryInterface(&masterrepo.CategoryStruct{})
 	status, descreption := repo.CreateCategory(&requst)
 	response := models.CommanRespones{
@@ -34,13 +45,25 @@ func (category *CategoryController) CategoryCreate(w http.ResponseWriter, r *htt
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
+}
 
 func (category *CategoryController) CategoryUpdate(w http.ResponseWriter, r *http.Request) {
 	request := models.Category{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		fmt.Println("Error in Decoding CategoryUpdate Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 	repo := masterrepo.CategoryInterface(&masterrepo.CategoryStruct{})
 	value, descreption, status := repo.CategoryUpdate(&request)
 	response := models.CategoryResponses{
@@ -56,13 +79,25 @@ func (category *CategoryController) CategoryUpdate(w http.ResponseWriter, r *htt
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
 }
+}
 
 func (category *CategoryController) CategoryGetById(w http.ResponseWriter, r *http.Request) {
 	request := mux.Vars(r)
 	id, err := strconv.ParseInt(request["id"], 10, 64)
 	if err != nil {
 		fmt.Println("Error in Decoding  CategoryGetById Request :", err)
-	}
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      false,
+			Descreption: "Failed",
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}else{
 
 	CategoryStruct := models.Category{
 		Id:id,
@@ -84,6 +119,7 @@ func (category *CategoryController) CategoryGetById(w http.ResponseWriter, r *ht
 	}
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)
+}
 }
 
 func (category *CategoryController) CategoryGetAll(w http.ResponseWriter, r *http.Request) {

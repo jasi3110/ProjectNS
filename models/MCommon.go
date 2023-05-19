@@ -40,7 +40,8 @@ func VerifyPassword(s string) bool {
 		}
 	}
 	res := letters + special
-	return res >= 8 && special >= 1 && letters >= 1
+// 	return res >= 8 && special >= 1 && letters >= 1
+return res >=8
 }
 
 

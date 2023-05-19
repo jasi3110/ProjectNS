@@ -4,6 +4,7 @@ import (
 	"OnlineShop/models"
 	"OnlineShop/repos"
 	"OnlineShop/repos/masterRepo"
+	// "crypto/rand"bv 
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -68,6 +69,7 @@ result=append(result, val12)
 	result=append(result, val2)
 
 	repo := repos.ProductInterface(&repos.ProductStruct{})
+	
 	value3,status3,descreption3:= repo.ProductGetAll()
 
 	if !status3{
