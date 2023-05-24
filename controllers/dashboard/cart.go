@@ -32,7 +32,7 @@ func (dashboard *DashboardCart) Cartpage(w http.ResponseWriter, r *http.Request)
 		w.Write(resp)
 	}else{
 	result := []models.DashboardCart1{}
-	nums := []models.ProductAll{}
+	nums := []models.ProductAllCart{}
 
 	val := models.DashboardCart1{
 		Id:       1,

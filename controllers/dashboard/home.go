@@ -14,9 +14,18 @@ type Dashboard struct {
 }
 
 func (dashboard *Dashboard) Homepage(w http.ResponseWriter, r *http.Request){
+	// CREATING A DASHBOARD SLICE 
 	result:=[]models.Dashboard{}
 	nums := []models.ProductAll{}
 
+	categoryrepo:= masterRepo.CategoryInterface(&masterRepo.CategoryStruct{})
+	value1,status1,descreption1:=categoryrepo.CategoryGetAll()
+
+	discountRepo := repos.DiscountInterface(&repos.DiscountStruct{})
+	value2, status2,descreption2 := discountRepo.DiscountGetAll()
+
+	productrepo := repos.ProductInterface(&repos.ProductStruct{})
+	value3,status3,descreption3:= productrepo.ProductGetAll()
 
 val:=models.Dashboard{
 	Id: 1,
@@ -34,8 +43,7 @@ val12:=models.Dashboard{
 result=append(result, val12)
 
 
-	categoryrepo:= masterRepo.CategoryInterface(&masterRepo.CategoryStruct{})
-	value1,status1,descreption1:=categoryrepo.CategoryGetAll()
+	
 	if !status1{
 		fmt.Println(descreption1)
 	}
@@ -56,8 +64,6 @@ result=append(result, val12)
 	
 
 
-	discountRepo := repos.DiscountInterface(&repos.DiscountStruct{})
-	value2, status2,descreption2 := discountRepo.DiscountGetAll()
 	if !status2{
 		fmt.Println(descreption2)
 	}
@@ -68,9 +74,7 @@ result=append(result, val12)
 	}
 	result=append(result, val2)
 
-	repo := repos.ProductInterface(&repos.ProductStruct{})
 	
-	value3,status3,descreption3:= repo.ProductGetAll()
 
 	if !status3{
 		fmt.Println(descreption3)
@@ -101,6 +105,25 @@ result=append(result, val12)
 	resp, err := json.Marshal(response)
 	if err != nil {
 		fmt.Println("Error in Marshal Dashboard in Homepage Response :", err)
+	}
+	w.Header().Set("Content-Type", "Application/json")
+	w.Write(resp)
+}
+
+
+func (dashboard *Dashboard) ProductImageGetAll(w http.ResponseWriter, r *http.Request) {
+
+	repo := masterRepo.ProductImageInterface(&masterRepo.ProductImageStruct{})
+	status,descreption:=repo.ProductImageGetall()
+	response := models.GetAllProductResponse{
+		Statuscode:   200,
+		Status:      status,
+		
+		Descreption: descreption,
+	}
+	resp, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println("Error in Marshal ProductGetAll Request :", err)
 	}
 	w.Header().Set("Content-Type", "Application/json")
 	w.Write(resp)

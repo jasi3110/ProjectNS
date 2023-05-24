@@ -3,6 +3,7 @@ package repos
 import (
 	"OnlineShop/models"
 	"OnlineShop/repos/masterRepo"
+
 	// "sync"
 
 	// "sync"
@@ -35,8 +36,21 @@ func (product *ProductStruct) ProductCreate(obj *models.Product) (string, bool) 
 	if !isConnected {
 		fmt.Println("DB Disconnceted in Product Create")
 	}
+	
 	if obj.Image == "" {
 		obj.Image = "https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600w-1114445501.jpg"
+	}
+	priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
+	pricesStruct := models.Price{
+		ProductId: obj.Id,
+		Mrp:       obj.Mrp,
+		Nop:       obj.Nop,
+	}
+	status, descreption, value := priceRepo.CreatePrice(&pricesStruct)
+
+	if !status {
+		fmt.Println(descreption)
+		return descreption, false
 	}
 	err := Db.QueryRow(`INSERT into "product"(
 		image,
@@ -54,23 +68,12 @@ func (product *ProductStruct) ProductCreate(obj *models.Product) (string, bool) 
 		obj.Unit,
 		0,
 		utls.GetCurrentDate()).Scan(&obj.Id)
-
+	
 	if err != nil {
 		fmt.Println("Error in Product Create QueryRow :", err)
 		return "Create Product Failed", false
 	}
-	priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
-	pricesStruct := models.Price{
-		ProductId: obj.Id,
-		Mrp:       obj.Mrp,
-		Nop:       obj.Nop,
-	}
-	status, descreption, value := priceRepo.CreatePrice(&pricesStruct)
-
-	if !status {
-		fmt.Println(descreption)
-		return descreption, false
-	}
+	
 	_, err = Db.Query(`UPDATE "product" SET price=$2 WHERE id=$1 and isdeleted=0`, &value.ProductId, &value.Id)
 
 	if err != nil {
@@ -82,6 +85,7 @@ func (product *ProductStruct) ProductCreate(obj *models.Product) (string, bool) 
 	}()
 	return "Product Created Successfully", true
 } 
+
 
 func (product *ProductStruct) ProductUpdate(obj *models.Product) (string, bool) {
 	Db, isconnceted := utls.OpenDbConnection()
@@ -152,6 +156,8 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.ProductAll, boo
 								   unit,
 								   coalesce( (select item from unit where id = unit) ) as unit,
 								   price,
+								   coalesce( (select mrp from price where id = price) ) as price,
+								   coalesce( (select nop from price where id = price) ) as price,
 								   createdon from "product" where id=$1 and isdeleted=0`)
 	if err != nil {
 		fmt.Println("Error in Product GetById QueryRow :", err)
@@ -166,19 +172,72 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.ProductAll, boo
 		&productStruct.Unit.Id,
 		&productStruct.Unit.Item,
 		&productStruct.Price.Id,
+		&productStruct.Price.Mrp,
+		&productStruct.Price.Nop,
 		&productStruct.CreatedOn)
 	if err != nil {
 		fmt.Println("Error in Product GetById QueryRow Scan :", err)
 		return productStruct, false, "Failed"
 	}
-	priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
-	value, status, descreption := priceRepo.PriceById(&productStruct.Price)
+	basicURL := "https://drive.google.com/uc?export=view&id="
+	productStruct.Image = basicURL + productStruct.Image
+	percentage:= 100 - ( ((float64(productStruct.Price.Nop) / float64(productStruct.Price.Mrp)) * 100))
+	productStruct.Price.Percentage=int64(percentage)
+	defer func() {
+		Db.Close()
+		query.Close()
+	}()
+	return productStruct, true, "Successfully Completed"
+}
 
-	productStruct.Price = value
-	if !status {
-		fmt.Println("Error in Product GetbyId price ById QueryRow :", descreption)
-		return productStruct, false, descreption
+
+
+
+
+
+func (product *ProductStruct) GetProductHomePage(obj *int64) (models.Product, bool, string) {
+
+	Db, isconnceted := utls.OpenDbConnection()
+	if !isconnceted {
+		fmt.Println("DB Disconnected in Product GetByID")
 	}
+
+	productStruct := models.Product{}
+	query, err := Db.Prepare(`SELECT id,
+								   imageid,
+								   name,
+								   price,
+								   coalesce( (select mrp,nop from price where id = price) ) as price,
+								   createdon from "product" where id=$1 and isdeleted=0`)
+	if err != nil {
+		fmt.Println("Error in Product GetById QueryRow :", err)
+		return productStruct, false, "Failed"
+	}
+	err = query.QueryRow(obj).Scan(&productStruct.Id,
+		&productStruct.Image,
+		&productStruct.Name,
+		&productStruct.Price,
+		&productStruct.CreatedOn)
+	if err != nil {
+		fmt.Println("Error in Product GetById QueryRow Scan :", err)
+		return productStruct, false, "Failed"
+	}
+	// num, err := strconv.ParseInt(productStruct.Image, 10, 64)
+	if err != nil {
+		fmt.Println("Error:", err)
+		
+	}
+	// priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
+	// value, status, descreption := priceRepo.PriceById(&productStruct.Price)
+
+	// productStruct.Price = value
+	// imagerepo:=masterRepo.ProductImageInterface(&masterRepo.ProductImageStruct{})
+	// value2,status2,descreption2:=imagerepo.ProductByImageId(&num)
+	// productStruct.Image=value2.Imageurl
+	// if !status || status2{
+	// 	fmt.Println("Error in Product GetbyId price ById QueryRow :", descreption,descreption2)
+	// 	return productStruct, false, "Failed"
+	// }
 	defer func() {
 		Db.Close()
 		query.Close()

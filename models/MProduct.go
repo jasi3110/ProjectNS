@@ -1,16 +1,28 @@
 package models
 
 type Product struct {
-	Id        int64   `json:"id"`
-	Image     string  `json:"image"`
-	Name      string  `json:"name"`
-	Category  int64   `json:"category"`
-	Quantity  string  `json:"quantity"`
-	Unit      int64   `json:"unit"`
-	Price     int64   `json:"price"`
-	Mrp       float64 `json:"mrp"`
-	Nop       float64 `json:"nop"`
-	CreatedOn string  `json:"createdon"`
+	Id         int64   `json:"id"`
+	Image      string  `json:"image"`
+	Name       string  `json:"name"`
+	Category   int64   `json:"category"`
+	Quantity   string  `json:"quantity"`
+	Unit       int64   `json:"unit"`
+	Price      string  `json:"price"`
+	Percentage int64   `json:"percentage"`
+	Mrp        float64 `json:"mrp"`
+	Nop        float64 `json:"nop"`
+	CreatedOn  string  `json:"createdon"`
+}
+
+type ProductHomePage struct {
+	Id         int64   `json:"id"`
+	Image      string  `json:"image"`
+	Name       string  `json:"name"`
+	Price      int64   `json:"price"`
+	Percentage int64   `json:"percentage"`
+	Mrp        float64 `json:"mrp"`
+	Nop        float64 `json:"nop"`
+	CreatedOn  string  `json:"createdon"`
 }
 type ProductAll struct {
 	Id         int64    `json:"id"`
@@ -54,15 +66,15 @@ type IDobj struct {
 }
 
 type ProductSearchResponses struct {
-	Statuscode  int64    `json:"statuscode"`
-	Status      bool     `json:"result"`
-	Value       []ProductAll `json:"searchdata"`
+	Statuscode int64        `json:"statuscode"`
+	Status     bool         `json:"result"`
+	Value      []ProductAll `json:"searchdata"`
 }
 
 type ProductSearch struct {
-	Id         int64    `json:"id"`
-	Name       string   `json:"name"`
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
 	// Category   Category `json:"category"`
 	// Unit       Unit     `json:"unit"`
-	
+
 }

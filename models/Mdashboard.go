@@ -19,7 +19,7 @@ type DashboardCart1 struct {
 	Type     string       `json:"type"`
 	ViewType int64        `json:"viewtype"`
 	Items    int64        `json:"items"`
-	Data     []ProductAll `json:"cartdata"`
+	Data     []ProductAllCart `json:"cartdata"`
 }
 
 type CommanResponesDashboardCart struct {

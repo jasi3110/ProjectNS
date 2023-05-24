@@ -22,7 +22,7 @@ func (discount *DiscountStruct) CreateDiscount(obj *models.RDiscount) (bool, str
 	if !isconnceted {
 		fmt.Println("DB Disconnceted in Create Discount")
 	}
-	
+	// txn,err:=Db.Begin()
 	// CHECKING PRODUCT IS ALREADY IN DISCOUNT PRODUCT
 	query, err := Db.Query(`SELECT productid FROM "discount" WHERE isdeleted=0`)
 	if err != nil {

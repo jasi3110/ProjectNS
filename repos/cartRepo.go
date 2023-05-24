@@ -92,7 +92,7 @@ func (cart *CartStruct) CartGetAll(obj *int64) (models.GetAllCart, bool, string)
 	for query.Next() {
 		err = query.Scan(
 			&cartStruct.Product.Id,
-			&cartStruct.Product.Quantity)
+			&cartStruct.Product.CartQuantity)
 		if err != nil {
 			fmt.Println("Error in cart GetAll QueryRow Scan :", err)
 			return result, false, "failed"
@@ -100,17 +100,25 @@ func (cart *CartStruct) CartGetAll(obj *int64) (models.GetAllCart, bool, string)
 		
 		productRepo:=ProductInterface(&ProductStruct{})
 		value, _,_:= productRepo.GetProductById(&cartStruct.Product.Id)
-
-value.Quantity = cartStruct.Product.Quantity
+cartStruct.Product.Id=value.Id
+cartStruct.Product.Image=value.Image
+cartStruct.Product.Name=value.Name
+cartStruct.Product.Category=value.Category
+cartStruct.Product.Quantity=value.Quantity
+// cartStruct.Product.CartQuantity = cartStruct.Product.Quantity
+cartStruct.Product.Unit=value.Unit
+cartStruct.Product.Percentage=value.Percentage
+cartStruct.Product.Price=value.Price
+cartStruct.Product.CreatedOn=value.CreatedOn
 // cartStruct.Product = value
  
 // productqty, _ := strconv.ParseFloat(value.Quantity, 32)
 // fmt.Println("",value.Price.Mrp*productqty)
 // value.Price.Mrp =value.Price.Mrp*productqty
 // value.Price.Nop=value.Price.Nop*productqty
-// result.Items  = result.Items + 1
+result.Items  = result.Items + 1
 // result.Productdiscoiunt =(result.Productdiscoiunt + (value.Price.Mrp - value.Price.Nop))*productqty
-		result.Value = append(result.Value, value)
+		result.Value = append(result.Value, cartStruct.Product)
 	}
 	defer func() {
 		Db.Close()

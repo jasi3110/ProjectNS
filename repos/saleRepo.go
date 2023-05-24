@@ -43,13 +43,7 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 	}
 
 	//write invoice
-	err = Txn.QueryRow(`INSERT into "invoice"(
-												billamount,
-												customerid,
-												createdon,
-												createdby,
-												items)
-												values($1,$2,$3,$4,$5)RETURNING id`,
+	err = Txn.QueryRow(`INSERT into "invoice"(billamount,customerid,createdon,items)values($1,$2,$3,$4,$5)RETURNING id`,
 		obj.BillAmount,
 		obj.CustomerId,
 		utls.GetCurrentDate(),

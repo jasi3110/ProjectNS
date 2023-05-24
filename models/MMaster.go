@@ -2,8 +2,9 @@ package models
 
 // CATEGORY
 type Category struct {
-	Id   int64 `json:"id"`
-	Name string `json:"name"`
+	Id    int64  `json:"id"`
+	Image string `json:"image"`
+	Name  string `json:"name"`
 }
 
 type CategoryResponses struct {
