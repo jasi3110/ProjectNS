@@ -11,7 +11,6 @@ type UserAddressInterface interface {
 	UserAddressUpdate(obj *models.UserAddress) (models.UserAddress, string, bool)
 	UserAddressDelete(obj *models.UserAddress) (bool, string)
 
-
 	UserAddressGetById(obj *models.UserAddress) (models.UserAddress, bool, string)
 	UserAddressGetAll() ([]models.UserAddress, bool, string)
 	UserAddressGetAllCustomer(obj *int64) ([]models.UserAddress, bool, string)
@@ -25,7 +24,7 @@ func (UserAddress *UserAddressStruct) UserAddressCreate(obj *models.UserAddress)
 		fmt.Println("DB Disconnceted in UserAddress Create")
 	}
 
-	err := Db.QueryRow(`INSERT INTO "useraddress" (customerid,name,address) values($1,$2,$3)RETURNING id`, obj.Customerid,&obj.Name,obj.Address).Scan(&obj.Id)
+	err := Db.QueryRow(`INSERT INTO "useraddress" (customerid,name,address) values($1,$2,$3)RETURNING id`, obj.Customerid, &obj.Name, obj.Address).Scan(&obj.Id)
 	if err != nil {
 		fmt.Println("Error in Create Category QueryRow :", err)
 		return false, " Address Create Failed "
@@ -41,10 +40,10 @@ func (UserAddress *UserAddressStruct) UserAddressUpdate(obj *models.UserAddress)
 	if !isconnceted {
 		fmt.Println("DB Disconnceted in User Address Update")
 	}
-	query :=`UPDATE "useraddress" SET name=$3,address=$4 WHERE id=$1 and customerid =$2 and isdeleted=0`
-	_, err :=Db.Exec(query,&obj.Id,&obj.Customerid, &obj.Name,&obj.Address)
-	
-	if err!= nil {
+	query := `UPDATE "useraddress" SET name=$3,address=$4 WHERE id=$1 and customerid =$2 and isdeleted=0`
+	_, err := Db.Exec(query, &obj.Id, &obj.Customerid, &obj.Name, &obj.Address)
+
+	if err != nil {
 		fmt.Println("Error in UserAddress Upadte QueryRow :")
 		return *obj, "Update Failed", false
 	}
@@ -59,9 +58,10 @@ func (UserAddress *UserAddressStruct) UserAddressDelete(obj *models.UserAddress)
 	if !isconnceted {
 		fmt.Println("DB disconnceted in Address Delete ")
 	}
-	query :=`UPDATE "useraddress" SET isdeleted=1 WHERE id=$1 andcustomerid=$2 isdeleted=0`
-	_, err :=Db.Exec(query,obj.Id,obj.Customerid)
-	if err!= nil {
+
+	query := `UPDATE "useraddress" SET isdeleted=1 WHERE id=$1 and customerid=$2 and isdeleted=0 `
+	_, err := Db.Exec(query, obj.Id, obj.Customerid)
+	if err != nil {
 		fmt.Println("Error in Address Delete QueryRow :")
 		return false, "Failed"
 	}
@@ -80,7 +80,7 @@ func (UserAddress *UserAddressStruct) UserAddressGetById(obj *models.UserAddress
 
 	query, _ := Db.Prepare(`SELECT id,customerid,name,address from "useraddress" where id=$1`)
 
-	err := query.QueryRow(obj.Id).Scan(&UserAddressStruct.Id,&UserAddressStruct.Customerid, &UserAddressStruct.Name,&UserAddressStruct.Address)
+	err := query.QueryRow(obj.Id).Scan(&UserAddressStruct.Id, &UserAddressStruct.Customerid, &UserAddressStruct.Name, &UserAddressStruct.Address)
 
 	if err != nil {
 		fmt.Println("Error in UserAddress GetById QueryRow :", err)
@@ -99,7 +99,7 @@ func (UserAddress *UserAddressStruct) UserAddressGetAll() ([]models.UserAddress,
 		fmt.Println("DB Disconnceted in UserAddress GetAll")
 	}
 	result := []models.UserAddress{}
-	UserAddressStruct:=models.UserAddress{}
+	UserAddressStruct := models.UserAddress{}
 
 	query, err := Db.Query(`SELECT id,customerid,name,address FROM "useraddress"`)
 	if err != nil {
@@ -117,7 +117,7 @@ func (UserAddress *UserAddressStruct) UserAddressGetAll() ([]models.UserAddress,
 			fmt.Println("Error in UserAddress GetAll QueryRow Scan:", err)
 			return result, false, "Failed"
 		}
-		result = append(result, UserAddressStruct )
+		result = append(result, UserAddressStruct)
 	}
 	defer func() {
 		Db.Close()
@@ -132,9 +132,9 @@ func (UserAddress *UserAddressStruct) UserAddressGetAllCustomer(obj *int64) ([]m
 		fmt.Println("DB Disconnceted in UserAddress GetAll")
 	}
 	result := []models.UserAddress{}
-	UserAddressStruct:=models.UserAddress{}
+	UserAddressStruct := models.UserAddress{}
 
-	query, err := Db.Query(`SELECT id,customerid,name,address FROM "useraddress" WHERE customerid=$1 and isdeleted=0`,obj)
+	query, err := Db.Query(`SELECT id,customerid,name,address FROM "useraddress" WHERE customerid=$1 and isdeleted=0`, obj)
 	if err != nil {
 		fmt.Println("Error in UserAddress GetAll QueryRow :", err)
 		return result, false, "UserAddress GetAll Failed"
@@ -151,7 +151,7 @@ func (UserAddress *UserAddressStruct) UserAddressGetAllCustomer(obj *int64) ([]m
 			fmt.Println("Error in UserAddress GetAll QueryRow Scan :", err)
 			return result, false, "Failed"
 		}
-		result = append(result, UserAddressStruct )
+		result = append(result, UserAddressStruct)
 	}
 	defer func() {
 		Db.Close()
@@ -159,5 +159,3 @@ func (UserAddress *UserAddressStruct) UserAddressGetAllCustomer(obj *int64) ([]m
 	}()
 	return result, true, "successfully Completed"
 }
-
-

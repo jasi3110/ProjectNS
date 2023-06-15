@@ -1,5 +1,5 @@
 {   "connectionString":"host=localhost port=5432 dbname=postgres user=postgres password=root sslmode=disable",
-    "serverIp":"192.168.192.64",
+    "serverIp":"192.168.2.90",
     "serverPort":"8108"
 }
 

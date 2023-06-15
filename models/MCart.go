@@ -1,8 +1,7 @@
 package models
 
 type Cart struct {
-	// Id      int64      `json:"id"`
-	Product ProductAllCart `json:"productdata"`
+	Product ProductAll `json:"productdata"`
 }
 
 type RCart struct {
@@ -13,7 +12,7 @@ type RCart struct {
 type GetAllCartResponse struct {
 	Statuscode       int64        `json:"statuscode"`
 	Status           bool         `json:"status"`
-	Value            []ProductAllCart `json:"cartdata"`
+	Value            []CartProductAll `json:"cartdata"`
 	Items            int64        `json:"items"`
 	Productprice     float64      `json:"mrpprice"`
 	Productdiscoiunt float64      `json:"discountprice"`
@@ -21,6 +20,18 @@ type GetAllCartResponse struct {
 	Descreption      string       `json:"desc"`
 }
 
+type CartProductAll struct {
+	Id           int64    `json:"id"`
+	Image        string   `json:"image"`
+	Name         string   `json:"name"`
+	Category     Category `json:"category"`
+	Quantity     string   `json:"quantity"`
+	CartQuantity string   `json:"cartquantity"`
+	Unit         Unit     `json:"unit"`
+	Percentage   int64    `json:"percentage"`
+	Price        Price    `json:"price"`
+	CreatedOn    string   `json:"createdon"`
+}
 type CartRespones struct {
 	Statuscode  int64  `json:"statuscode"`
 	Status      bool   `json:"status"`
@@ -29,12 +40,8 @@ type CartRespones struct {
 }
 
 type GetAllCart struct {
-	Value []ProductAllCart `json:"cartdata"`
+	Value []CartProductAll `json:"cartdata"`
 	Items int64        `json:"items"`
-	// Productprice     float64 `json:"mrpprice"`
-	// Productdiscoiunt float64 `json:"discountprice"`
-	// Total            float64 `json:"total"`
-	// Descreption      string  `json:"desc"`
 }
 
 type ProductAllCart struct {

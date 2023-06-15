@@ -34,8 +34,7 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 	if !isconnceted {
 		fmt.Println("DB is Disconnceted in CreateSale ")
 	}
-	a := 1
-	//create transaction
+	// create transaction
 	Txn, err := Db.Begin()
 	if err != nil {
 		fmt.Println("Error in CreateSale Transacation in DB :", err)
@@ -43,11 +42,10 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 	}
 
 	//write invoice
-	err = Txn.QueryRow(`INSERT into "invoice"(billamount,customerid,createdon,items)values($1,$2,$3,$4,$5)RETURNING id`,
+	err = Txn.QueryRow(`INSERT into "invoice"(billamount,customerid,createdon,items)values($1,$2,$3,$4)RETURNING id`,
 		obj.BillAmount,
 		obj.CustomerId,
 		utls.GetCurrentDate(),
-		obj.CreatedBy,
 		obj.Items,
 	).Scan(&obj.Id)
 
@@ -62,30 +60,21 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 		return false, "CREATE SALE FAILED", *obj
 	}
 	//write sales entry data from array
-
+    id:=0
 	for _, productItem := range obj.Products {
+		
 
-		err := Txn.QueryRow(`INSERT into "saleentry"(customerid,
-												billid,
-												invoiceid,
-			     								productid,
-												productprice,
-												quantity,
-												createdon,
-												createdby,
-												isdeleted)
-												values($1,$2,$3,$4,$5,$6,$7,$8,$9)RETURNING id`,
+		err := Txn.QueryRow(`INSERT into "saleentry"(customerid,invoiceid,productid,productprice,quantity,
+			createdon,isdeleted)values($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
 			obj.CustomerId,
 			obj.Id,
-			obj.Id,
 			productItem.Id,
-			productItem.Price,
+			productItem.Price.Id,
 			productItem.Quantity,
 			utls.GetCurrentDate(),
-			obj.CreatedBy,
 			0,
-		).Scan(&a)
-		fmt.Println("", a)
+		).Scan(&id)
+		log.Println("Saleentry created:", id)
 		if err != nil {
 			fmt.Println("Error in CreateSale SaleEntry QueryRow Scan :", err)
 			err := Txn.Rollback()
@@ -94,17 +83,19 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 			}
 			return false, "CREATE SALE FAILED", *obj
 		}
-		// var productchannel chan models.ProductAll
+		
 		productRepo := ProductInterface(&ProductStruct{})
 		value, _,_:=productRepo.GetProductById(&productItem.Id)
-		// value := <-productchannel
+	
 		productqty, _ := strconv.ParseFloat(value.Quantity, 32)
 		productqty1, _ := strconv.ParseFloat(productItem.Quantity, 32)
-		if productqty != 0 || true {
+		if productqty != 0 && productqty1 !=0{
 			//reduce stock quantity from product table
 			productqty = productqty - productqty1
-			quatity := strconv.FormatFloat(productqty, 'E', -1, 64)
-			updateQueryqty, err := Txn.Query(`UPDATE  "product" SET  quantity=$1 WHERE id=$2 and isdeleted=1`,
+			quatity := strconv.FormatFloat(productqty, 'f', -1, 64)
+			fmt.Println("",productItem.Quantity,quatity,productItem.Id)
+			if productqty>=0{
+			_,err := Txn.Exec(`UPDATE  "product" SET  quantity=$1 WHERE id=$2 and isdeleted=0`,
 				quatity, productItem.Id)
 
 			if err != nil {
@@ -114,13 +105,10 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 					fmt.Println("Error in CreateSale Rollback in Product Update QueryRow :", err)
 				}
 				return false, "CREATE SALE FAILED", *obj
-			}
-			err = updateQueryqty.Close()
-			if err != nil {
-				fmt.Println("Error in CreateSale Product Update Close :", err)
-			}
+			}}
+		
 		}
-
+	}
 		err = Txn.Commit()
 		fmt.Println("transcration commited ")
 		if err != nil {
@@ -128,15 +116,16 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 			err := Txn.Rollback()
 			if err != nil {
 				fmt.Println("Error in CreateSale Rollback in Product Update :", err)
-			}
+			
 			return false, "CREATE SALE FAILED", *obj
-		}
-	}
+		}}
 	defer func() {
 		Db.Close()
 	}()
-	return true, "CREATE SALE SUCCESSFULLY COMPLETED", *obj
+
+return true, "CREATE SALE SUCCESSFULLY COMPLETED", *obj
 }
+
 
 func (sale *SaleStruct) InvoiceGetall() ([]models.Invoice, bool, string) {
 	Db, isConnected := utls.OpenDbConnection()
@@ -157,7 +146,6 @@ func (sale *SaleStruct) InvoiceGetall() ([]models.Invoice, bool, string) {
 			&invoiceStruct.BillAmount,
 			&invoiceStruct.CustomerId,
 			&invoiceStruct.CreatedOn,
-			&invoiceStruct.CreatedBy,
 		)
 		if err != nil {
 			fmt.Println("Error in User GetAll QueryRow :", err)
@@ -223,12 +211,10 @@ func (sale *SaleStruct) SaleGetByCustomerid(obj *int64) (models.InvoiceBillById,
 
 	query, err := Db.Query(`SELECT          id,
 											customerid,
-											billid,
 											productid,
 											productprice,
 											quantity,
 											createdon,
-											createdby
 												FROM "saleentry"
 												WHERE customerid=$1 and isdeleted=0`, obj)
 	if err != nil {
@@ -239,12 +225,10 @@ func (sale *SaleStruct) SaleGetByCustomerid(obj *int64) (models.InvoiceBillById,
 	for query.Next() {
 		err := query.Scan(&result.Id,
 			&result.CustomerId,
-			&result.BillId,
 			&productStruct.Id,
 			&productStruct.Price.Id,
 			&productStruct.Quantity,
 			&result.CreatedOn,
-			&result.CreatedBy,
 		)
 		if err != nil {
 			fmt.Println("Error in SaleGetByBillid QueryRow :", err)
@@ -461,7 +445,7 @@ func (sale *SaleStruct) SaleDelete(obj *models.Invoice) (bool, string) {
 		fmt.Println("Error in SaleDelete Transacation in DB :", err)
 		return false, "DELETETSALE FAILED"
 	}
-	err = txn.QueryRow(`UPDATE "invoice" SET isdeleted=1  WHERE id=$1 `, obj.Id).Scan(&obj.BillId)
+	err = txn.QueryRow(`UPDATE "invoice" SET isdeleted=1  WHERE id=$1 `, obj.Id).Scan(&obj.Id)
 
 	if err != nil {
 		fmt.Println("Error in Delete Invoice QueryRow  :", err)
@@ -476,7 +460,7 @@ func (sale *SaleStruct) SaleDelete(obj *models.Invoice) (bool, string) {
 		fmt.Println("Error in Delete Invioce QueryRow Close :", err)
 	}
 
-	DeleteQuerySaleEntry, err := txn.Query(`UPDATE "saleentry" SET isdeleted=1  WHERE billid=$1`, obj.BillId)
+	DeleteQuerySaleEntry, err := txn.Query(`UPDATE "saleentry" SET isdeleted=1  WHERE billid=$1`, obj.Id)
 	for DeleteQuerySaleEntry.Next() {
 		if err != nil {
 			fmt.Println("Error in Delete SaleEntry QueryRow  :", err)
@@ -497,3 +481,5 @@ func (sale *SaleStruct) SaleDelete(obj *models.Invoice) (bool, string) {
 	}()
 	return true, "User SaleEntry Deleted Sucessfully Completed"
 }
+
+

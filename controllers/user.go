@@ -5,16 +5,13 @@ import (
 	"OnlineShop/repos"
 	"OnlineShop/repos/masterRepo"
 	"OnlineShop/utls"
-	"fmt"
-
-	// "context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
-	// "github.com/go-delve/delve/service"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 )
@@ -23,111 +20,225 @@ type UserController struct {
 }
 
 func (user *UserController) UserCreate(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Panic(r)
+		}
+	}()
 
 	request := models.User{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 
 	if err != nil {
 		log.Println("Error in Decoding UserCreate Request :", err)
-	response := models.CommanRespones{
-			Statuscode:  200,
-			Status:      false,
-			Descreption: "Check The Details You Entered",
-		}
+		response := models.CommanRespones{}
+		response.Statuscode = 200
+		response.Status = false
+		response.Descreption = "Check The Details You Entered"
+
 		resp, err := json.Marshal(&response)
 		if err != nil {
-			fmt.Println("Error in Marshal CartUpdate Response:", err)
+			log.Panic("Error in Marshal CartUpdate Response:", err)
 		}
 		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
-	}else{
-	status, description := Validrequst(request)
-	if !status {
-		response := models.CommanRespones{
-			Statuscode:  200,
-			Status:      status,
-			Descreption: description,
-		}
-		resp, err := json.Marshal(response)
 
-		if err != nil {
-			log.Println("Error in Marshal Validation Response :", err)
-		}
-		w.Write(resp)
 	} else {
-		repo := repos.UserInterface(&repos.UserRepo{})
 
-		description, status := repo.UserCreate(&request)
+		status, description := Validrequst(request)
+		if !status {
+			response := models.CommanRespones{}
+			response.Statuscode = 200
+			response.Status = status
+			response.Descreption = description
+			resp, err := json.Marshal(response)
 
-		response := models.CommanRespones{
-			Statuscode:  200,
-			Status:      status,
-			Descreption: description,
+			if err != nil {
+				log.Panic("Error in Marshal Validation Response :", err)
+			}
+			w.Write(resp)
+		} else {
+			repo := repos.UserInterface(&repos.UserRepo{})
+			description, status := repo.UserCreate(&request)
+
+			response := models.CommanRespones{}
+			response.Statuscode = 200
+			response.Status = status
+			response.Descreption = description
+
+			resp, err := json.Marshal(response)
+			if err != nil {
+				log.Println("Error in Marshal UserCreate Response : ", err)
+			}
+			w.Header().Set("Content-Type", "Application/json")
+			w.Write(resp)
 		}
-
-		resp, err := json.Marshal(response)
-		if err != nil {
-			log.Println("Error in Marshal UserCreate Response : ", err)
-		}
-		w.Header().Set("Content-Type", "Application/json")
-		w.Write(resp)
 	}
-}
 }
 
 func (user *UserController) UserLogin(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Panic(r)
+		}
+	}()
 
 	request := models.LoginUser{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 
 	if err != nil {
-		log.Println("Error in Decoding UserLogin Request :", err)
-	response := models.CommanRespones{
-			Statuscode:  200,
-			Status:      false,
-			Descreption: "Failed",
-		}
+		log.Panic("Error in Decoding UserLogin Request :", err)
+		response := models.CommanRespones{}
+		response.Statuscode = 200
+		response.Status = false
+		response.Descreption = "Login Failed"
+
 		resp, err := json.Marshal(&response)
 		if err != nil {
-			fmt.Println("Error in Marshal CartUpdate Response:", err)
+			log.Panic("Error in Marshal User Login Response:", err)
 		}
 		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
-	}else{
-	repo := repos.UserInterface(&repos.UserRepo{})
+	} else {
+		repo := repos.UserInterface(&repos.UserRepo{})
+		value, status, descreption := repo.UserLogin(&request)
 
-	value, status, descreption := repo.UserLogin(&request)
+		response := models.UserResponseModel{}
+		response.Statuscode = 200
+		response.Status = status
+		response.Value = value
+		response.Descreption = descreption
 
-	response := models.UserResponseModel{
-		Statuscode:  200,
-		Status:      status,
-		Value:       value,
-		Descreption: descreption,
+		resp, err := json.Marshal(response)
+		if err != nil {
+			log.Panic("Error in Marshal Login respone :", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
 	}
-
-	resp, err := json.Marshal(response)
-
-	if err != nil {
-		log.Println("Error in Marshal Login respone :", err)
-	}
-	w.Header().Set("Content-Type", "Application/json")
-	w.Write(resp)
-}
 }
 
 func (User *UserController) UserUpdateEmail(w http.ResponseWriter, r *http.Request) {
-	request := models.UserUpdate{}
+	defer func() {
+		if r := recover(); r != nil {
+			log.Panic(r)
+		}
+	}()
+
+	request := models.UserverifyEmail{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		log.Println("Error in Decoding UserUpdate Request :", err)
+		log.Panic("Error in Decoding UserUpdate Email Request :", err)
 	}
 
 	status := models.VerifyEmail(request.Email)
 	if !status {
+		response := models.CommanRespones{}
+		response.Statuscode = 200
+		response.Status = status
+		response.Descreption = "Invalid Email"
+
+		resp, err := json.Marshal(response)
+
+		if err != nil {
+			log.Panic("Error in marshal UserUpdate Email Validation Response :", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	} else {
+		repo := repos.UserInterface(&repos.UserRepo{})
+		status, descreption := repo.UserUpdateEmail(&request)
+		respone := models.CommanRespones{}
+		respone.Statuscode = 200
+		respone.Status = status
+		respone.Descreption = descreption
+
+		resp, err := json.Marshal(&respone)
+		if err != nil {
+			log.Panic("Error in marshal UserUpdate Email Response :", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}
+}
+
+func (User *UserController) UserUpdateMobileno(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Panic(r)
+		}
+	}()
+
+	request := models.UserverifyMobileno{}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		log.Panic("Error in Decoding User Update  Mobile Number Request :", err)
+	}
+
+	status := models.VerifyMobileno(request.Mobileno)
+	if !status {
+		response := models.CommanRespones{}
+		response.Statuscode = 200
+		response.Status = status
+		response.Descreption = "Invailed Mobile Number"
+
+		resp, err := json.Marshal(response)
+		if err != nil {
+			log.Panic("Error in marshal User Update Mobile Number Validation Response :", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+
+	} else {
+
+		repo := repos.UserInterface(&repos.UserRepo{})
+		value, status, descreption := repo.UserUpdateMobileno(&request)
+
+		respone := models.UserUpdateMobilenoResponseModel{}
+		respone.Statuscode = 200
+		respone.Status = status
+		respone.Value = value
+		respone.Descreption = descreption
+
+		resp, err := json.Marshal(&respone)
+		if err != nil {
+			log.Panic("Error in marshal UserUpdate Response :", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}
+}
+
+func (User *UserController) UserChangePassword(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Panic(r)
+		}
+	}()
+
+	request := models.UserChangePassword{}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		log.Panic("Error in Decoding UserChangePassword Request :", err)
+
+		response := models.CommanRespones{}
+		response.Statuscode = 200
+		response.Status = false
+		response.Descreption = "Invaild Operation"
+
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			log.Panic("Error in Marshal UserChangePassword Response:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}
+	status := models.VerifyPassword(request.Password)
+	if !status {
 		response := models.CommanRespones{
 			Statuscode:  200,
 			Status:      status,
-			Descreption: "Invalid Email",
+			Descreption: "Make Password Strong",
 		}
 		resp, err := json.Marshal(response)
 
@@ -137,29 +248,116 @@ func (User *UserController) UserUpdateEmail(w http.ResponseWriter, r *http.Reque
 		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
 	} else {
+
 		repo := repos.UserInterface(&repos.UserRepo{})
-		value, status, descreption := repo.UserUpdateEmail(&request)
-		respone := models.UserUpdateResponseModel{
-			Statuscode:  200,
-			Status:      status,
-			Value:       value,
-			Descreption: descreption,
-		}
-		resp, err := json.Marshal(&respone)
+		descreption, status := repo.UserChangePassword(&request)
+		response := models.CommanRespones{}
+		response.Statuscode = 200
+		response.Status = status
+		response.Descreption = descreption
+
+		resp, err := json.Marshal(&response)
 		if err != nil {
-			log.Println("Error in marshal UserUpdate Response :", err)
+			log.Panic("Error in Marshal Change UserPassword Responsee:", err)
 		}
 		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
 	}
 }
 
-func (User *UserController) UserChangePassword(w http.ResponseWriter, r *http.Request) {
+func (User *UserController) UserCheckingPassword(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Panic(r)
+		}
+	}()
+
+	request := models.User{}
+	err := json.NewDecoder(r.Body).Decode(&request)
+
+	if err != nil {
+		log.Panic("Error in Decoding UserCheckingPassword Request :", err)
+
+		response := models.CommanRespones{}
+		response.Statuscode = 200
+		response.Status = false
+		response.Descreption = "Failed"
+
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			log.Panic("Error in Marshal Checking password Response:", err)
+		}
+
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+
+	} else {
+
+		repo := repos.UserInterface(&repos.UserRepo{})
+		descreption, status := repo.UserCheckingPassword(&request)
+		response := models.CommanRespones{}
+		response.Statuscode = 200
+		response.Status = status
+		response.Descreption = descreption
+
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			log.Panic("Error in Marshal Change UserPassword Responsee:", err)
+		}
+
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}
+}
+
+func (User *UserController) UserUpdatePassword(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Panic(r)
+		}
+	}()
+
 	request := models.UserChangePassword{}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		log.Panic("Error in Decoding UserUpdatePassword Request :", err)
+
+		response := models.CommanRespones{}
+		response.Statuscode = 200
+		response.Status = false
+		response.Descreption = "Failed"
+
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			log.Panic("Error in Marshal CartUpdate Response:", err)
+		}
+
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	} else {
+
+		repo := repos.UserInterface(&repos.UserRepo{})
+		descreption, status := repo.UserUpdatePassword(&request)
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      status,
+			Descreption: descreption,
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			log.Println("Error in Marshal Update UserPassword Responsee:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}
+}
+
+func (User *UserController) UserVerifyById(w http.ResponseWriter, r *http.Request) {
+	request := models.Userverify{}
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		log.Println("Error in Decoding UserChangePassword Request :", err)
+		log.Println("Error in Decoding UserUpdatePassword Request :", err)
 		response := models.CommanRespones{
 			Statuscode:  200,
 			Status:      false,
@@ -171,31 +369,48 @@ func (User *UserController) UserChangePassword(w http.ResponseWriter, r *http.Re
 		}
 		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
-	}else{
+	} else {
+		log.Println(request)
 
-	repo := repos.UserInterface(&repos.UserRepo{})
-	descreption, status := repo.UserChangePassword(&request)
-	response := models.CommanRespones{
-		Statuscode:  200,
-		Status:      status,
-		Descreption: descreption,
+		if !models.VerifyMobileno(request.VerifyUser) && !models.VerifyEmail(request.VerifyUser) {
+			response := models.CommanRespones{
+				Statuscode:  200,
+				Status:      false,
+				Descreption: "Check your Mobile Number Or Email",
+			}
+			resp, err := json.Marshal(response)
+
+			if err != nil {
+				log.Println("Error in Marshal UserUpdatePassword Validation Response :", err)
+			}
+			w.Header().Set("Content-Type", "Application/json")
+			w.Write(resp)
+		} else {
+			repo := repos.UserInterface(&repos.UserRepo{})
+			status, descreption := repo.UserverifyById(&request)
+			response := models.CommanRespones{
+				Statuscode:  200,
+				Status:      status,
+				Descreption: descreption,
+			}
+
+			resp, err := json.Marshal(&response)
+			if err != nil {
+				log.Println("Error in Marshal Update UserPassword Responsee:", err)
+			}
+			w.Header().Set("Content-Type", "Application/json")
+			w.Write(resp)
+		}
 	}
-	resp, err := json.Marshal(&response)
-	if err != nil {
-		log.Println("Error in Marshal Change UserPassword Responsee:", err)
-	}
-	w.Header().Set("Content-Type", "Application/json")
-	w.Write(resp)
 }
-} 
 
-func (User *UserController) UserUpdatePassword(w http.ResponseWriter, r *http.Request) {
-	request := models.UserChangePassword{}
+func (User *UserController) UserUpdateName(w http.ResponseWriter, r *http.Request) {
+	request := models.User{}
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		log.Println("Error in Decoding UserUpdatePassword Request :", err)
-	response := models.CommanRespones{
+		response := models.CommanRespones{
 			Statuscode:  200,
 			Status:      false,
 			Descreption: "Failed",
@@ -206,22 +421,22 @@ func (User *UserController) UserUpdatePassword(w http.ResponseWriter, r *http.Re
 		}
 		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
-	}else{
+	} else {
 
-	repo := repos.UserInterface(&repos.UserRepo{})
-	descreption, status := repo.UserUpdatePassword(&request)
-	response := models.CommanRespones{
-		Statuscode:  200,
-		Status:      status,
-		Descreption: descreption,
+		repo := repos.UserInterface(&repos.UserRepo{})
+		status, descreption := repo.UserUpdateName(&request)
+		response := models.CommanRespones{
+			Statuscode:  200,
+			Status:      status,
+			Descreption: descreption,
+		}
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			log.Println("Error in Marshal Update UserPassword Responsee:", err)
+		}
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
 	}
-	resp, err := json.Marshal(&response)
-	if err != nil {
-		log.Println("Error in Marshal Update UserPassword Responsee:", err)
-	}
-	w.Header().Set("Content-Type", "Application/json")
-	w.Write(resp)
-}
 }
 
 func (User *UserController) UserGetAll(w http.ResponseWriter, r *http.Request) {
@@ -248,170 +463,251 @@ func (user *UserController) UserGetById(w http.ResponseWriter, r *http.Request) 
 	}
 	if err != nil {
 		log.Println("Error in Decoding UserGetById Request :", err)
-	response := models.CommanRespones{
-			Statuscode:  200,
-			Status:      false,
-			Descreption: "Failed",
-		}
-		resp, err := json.Marshal(&response)
-		if err != nil {
-			fmt.Println("Error in Marshal CartUpdate Response:", err)
-		}
-		w.Header().Set("Content-Type", "Application/json")
-		w.Write(resp)
-	}else{
-	repo := repos.UserInterface(&repos.UserRepo{})
-
-	value, status, descreption := repo.UserGetById(&userid)
-	roleStruct := models.Role{
-		Id: value.Role,
-	}
-	roleRepo := masterRepo.RoleInterface(&masterRepo.RoleStruct{})
-	role, _, _ := roleRepo.RoleById(&roleStruct)
-	value.Role = role.Type
-
-	response := models.UserResponseModel{
-		Statuscode:  200,
-		Status:      status,
-		Value:       value,
-		Descreption: descreption,
-	}
-	resp, err := json.Marshal(response)
-
-	if err != nil {
-		log.Println("Error in Marshal UserGetById Response :", err)
-	}
-	w.Header().Set("Content-Type", "Application/json")
-	w.Write(resp)
-}
-}
-
-func (user *UserController) Userverfiy(w http.ResponseWriter, r *http.Request) {
-	request := models.Userverify{}
-
-	err := json.NewDecoder(r.Body).Decode(&request)
-	if err != nil {
-		log.Println("Error in Decoding UserUpdatePassword Request :", err)
-	response := models.CommanRespones{
-			Statuscode:  200,
-			Status:      false,
-			Descreption: "Failed",
-		}
-		resp, err := json.Marshal(&response)
-		if err != nil {
-			fmt.Println("Error in Marshal CartUpdate Response:", err)
-		}
-		w.Header().Set("Content-Type", "Application/json")
-		w.Write(resp)
-	}else{
-	log.Println(request)
-
-	if !models.VerifyMobileno(request.VerifyUser) && !models.VerifyEmail(request.VerifyUser) {
 		response := models.CommanRespones{
 			Statuscode:  200,
 			Status:      false,
-			Descreption: "Check your Mobile Number Or Email",
+			Descreption: "Failed",
 		}
-		resp, err := json.Marshal(response)
-
+		resp, err := json.Marshal(&response)
 		if err != nil {
-			log.Println("Error in Marshal UserUpdatePassword Validation Response :", err)
+			fmt.Println("Error in Marshal CartUpdate Response:", err)
 		}
 		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
 	} else {
 		repo := repos.UserInterface(&repos.UserRepo{})
-		value, status, descreption := repo.Userverify(&request)
-		response := models.UserverfiyOtp{
+
+		value, status, descreption := repo.UserGetById(&userid)
+		roleStruct := models.Role{
+			Id: value.Role,
+		}
+		roleRepo := masterRepo.RoleInterface(&masterRepo.RoleStruct{})
+		role, _, _ := roleRepo.RoleById(&roleStruct)
+		value.Role = role.Type
+
+		response := models.UserResponseModel{
 			Statuscode:  200,
 			Status:      status,
 			Value:       value,
 			Descreption: descreption,
 		}
+		resp, err := json.Marshal(response)
 
-		resp, err := json.Marshal(&response)
 		if err != nil {
-			log.Println("Error in Marshal Update UserPassword Responsee:", err)
+			log.Println("Error in Marshal UserGetById Response :", err)
 		}
 		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
 	}
 }
+
+func (user *UserController) Userverify(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Panic("Recovered from panic condition : ", r)
+		}
+	}()
+
+	request := models.Userverify{}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		log.Panic("Error in Decoding User Verify Request :", err)
+
+		response := models.CommanRespones{}
+		response.Statuscode=200
+		response.Status=false
+		response.Descreption="Failed"
+		
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			log.Panic("Error in Marshal User Verify Response:", err)
+		}
+
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+
+	} else {
+
+		if !models.VerifyMobileno(request.VerifyUser) && !models.VerifyEmail(request.VerifyUser) {
+			response := models.CommanRespones{}
+			response.Statuscode=200
+			response.Status=false
+			response.Descreption="Check Your Mobile Number or Email"
+				
+			resp, err := json.Marshal(response)
+			if err != nil {
+				log.Panic("Error in Marshal User verify Validation Response :", err)
+			}
+			w.Header().Set("Content-Type", "Application/json")
+			w.Write(resp)
+		} else {
+			repo := repos.UserInterface(&repos.UserRepo{})
+			value, status, descreption := repo.Userverify(&request)
+			response := models.UserverfiyOtp{}
+			response.Statuscode=200
+			response.Status=status
+			response.Value=value
+			response.Descreption=descreption
+
+			resp, err := json.Marshal(&response)
+			if err != nil {
+				log.Panic("Error in Marshal User verify  Responsee:", err)
+			}
+			w.Header().Set("Content-Type", "Application/json")
+			w.Write(resp)
+		}
+	}
 }
 
 func (user *UserController) UserCheckOtp(w http.ResponseWriter, r *http.Request) {
-	request := models.Userverify{}
+	defer func() {
+		if r := recover(); r != nil {
+			log.Panic("Recovered from panic condition : ", r)
+		}
+	}()
 
+	request := models.Userverify{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		log.Println("Error in Decoding UserUpdatePassword Request :", err)
-	response := models.CommanRespones{
-			Statuscode:  200,
-			Status:      false,
-			Descreption: "Failed",
-		}
+		log.Panic("Error in Decoding User Check OTP Request :", err)
+
+		response := models.CommanRespones{}
+		response.Statuscode=200
+		response.Status=false
+		response.Descreption="Failed"
+			
 		resp, err := json.Marshal(&response)
 		if err != nil {
-			fmt.Println("Error in Marshal CartUpdate Response:", err)
+			log.Panic("Error in Marshal User Check OTP Response:", err)
 		}
+
 		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
-	}else{
 
-	repo := repos.UserInterface(&repos.UserRepo{})
-	value, status, descreption := repo.UserCheckOtp(&request)
-	response := models.UserUpdatePassword{
-		Statuscode:  200,
-		Status:      status,
-		Value:       value,
-		Descreption: descreption,
+	} else {
+
+		repo := repos.UserInterface(&repos.UserRepo{})
+		status, descreption := repo.UserCheckOtp(&request)
+		response := models.CommanRespones{}
+		response.Statuscode=200
+		response.Status=status
+		response.Descreption=descreption
+
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			log.Panic("Error in Marshal Update UserPassword Responsee:", err)
+		}
+
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+
 	}
-	resp, err := json.Marshal(&response)
-	if err != nil {
-		log.Println("Error in Marshal Update UserPassword Responsee:", err)
-	}
-	w.Header().Set("Content-Type", "Application/json")
-	w.Write(resp)
-}
 }
 
 func (user *UserController) UserDelete(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Panic("Recovered from panic condition : ", r)
+		}
+	}()
+
 	request := mux.Vars(r)
 	id, err := strconv.ParseInt(request["id"], 10, 64)
-	userid := models.User{
-		Id: id,
-	}
+	userid := models.User{Id: id,}
+
 	if err != nil {
-		log.Println("Error in Decoding UserGetById Request :", err)
-	response := models.CommanRespones{
-			Statuscode:  200,
-			Status:      false,
-			Descreption: "Failed",
-		}
+		log.Panic("Error in Decoding User Delete Request :", err)
+
+		response := models.CommanRespones{}
+		response.Statuscode=  200
+		response.Status=    false
+		response.Descreption= "Failed"
+		
 		resp, err := json.Marshal(&response)
 		if err != nil {
-			fmt.Println("Error in Marshal CartUpdate Response:", err)
+			log.Panic("Error in Marshal User Delete Response:", err)
 		}
+
 		w.Header().Set("Content-Type", "Application/json")
 		w.Write(resp)
-	}else{
-	repo := repos.UserInterface(&repos.UserRepo{})
 
-	status, descreption := repo.UserDelete(&userid)
+	} else {
 
-	response := models.CommanRespones{
-		Statuscode:  200,
-		Status:      status,
-		Descreption: descreption,
+		repo := repos.UserInterface(&repos.UserRepo{})
+		status, descreption := repo.UserDelete(&userid)
+
+		response := models.CommanRespones{}
+		response.Statuscode=200
+		response.Status=status
+		response.Descreption=descreption
+		
+		
+		resp, err := json.Marshal(response)
+		if err != nil {
+			log.Panic("Error in Marshal UserGetById Response :", err)
+		}
+
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
 	}
-	resp, err := json.Marshal(response)
-
-	if err != nil {
-		log.Println("Error in Marshal UserGetById Response :", err)
-	}
-	w.Header().Set("Content-Type", "Application/json")
-	w.Write(resp)
 }
+
+func (user *UserController) UserVerfiyMobileno(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Panic("Recovered from panic condition : ", r)
+		}
+	}()
+
+	request := models.UserverifyMobileno{}
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		log.Panic("Error in Decoding User Verfiy Mobileno Request :", err)
+
+		response := models.CommanRespones{}
+		response.Statuscode=200
+		response.Status=false
+		response.Descreption= "Check The Details You Entered"
+			
+		resp, err := json.Marshal(&response)
+		if err != nil {
+			log.Panic("Error in Marshal CartUpdate Response:", err)
+		}
+
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+
+	} else if !models.VerifyMobileno(request.Mobileno) {
+
+		response := models.CommanRespones{}
+		response.Statuscode=200
+		response.Status=false
+		response.Descreption="Please Use Vaild Mobile Number "
+		
+		resp, err := json.Marshal(response)
+		if err != nil {
+			log.Panic("Error in Marshal User Verfiy Mobileno Validation Response :", err)
+		}
+		w.Write(resp)
+
+	} else {
+
+		repo := repos.UserInterface(&repos.UserRepo{})
+		status, description := repo.UserverifyMobileno(&request)
+
+		response := models.CommanRespones{}
+		response.Statuscode=200
+		response.Status=status
+		response.Descreption=description
+		
+		resp, err := json.Marshal(response)
+		if err != nil {
+			log.Panic("Error in Marshal UserVerfiy Mobileno Response : ", err)
+		}
+
+		w.Header().Set("Content-Type", "Application/json")
+		w.Write(resp)
+	}
 }
 
 // VALIDATION METHODS

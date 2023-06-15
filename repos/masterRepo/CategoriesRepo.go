@@ -123,11 +123,7 @@ func (category *CategoryStruct) CategoryGetAll() ([]models.Category, bool, strin
 		return result, false, "Failed"
 	}
 	// SCANNING VALUES FROM CATEGORY TABLE
-	for query.Next() {
-		err := query.Scan(
-			&categoryStruct.Id,
-			&categoryStruct.Name,
-			&categoryStruct.Image)
+	for query.Next() {err := query.Scan(&categoryStruct.Id,&categoryStruct.Name,&categoryStruct.Image)
 		if err != nil {
 			fmt.Println("Error in Category GetAll QueryRow Scan :", err)
 			return result, false, "Failed"
@@ -161,11 +157,7 @@ func (category *CategoryStruct) CategoryGetAllbyid() ([]models.Category, bool, s
 	}
 
 	for query.Next() {
-		err := query.Scan(
-			&categoryStruct.Id,
-			&categoryStruct.Name,
-			&categoryStruct.Image,
-		)
+		err := query.Scan(&categoryStruct.Id,&categoryStruct.Name,&categoryStruct.Image)
 		if err != nil {
 			fmt.Println("Error in Category GetAll QueryRow :", err)
 			return result, false, "Failed"

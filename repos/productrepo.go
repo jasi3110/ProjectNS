@@ -123,6 +123,7 @@ func (product *ProductStruct) ProductUpdate(obj *models.Product) (string, bool) 
 	return "Successfully Updated", true
 }
 
+
 func (product *ProductStruct) ProductDelete(obj *models.Product) (bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
@@ -138,6 +139,7 @@ func (product *ProductStruct) ProductDelete(obj *models.Product) (bool, string) 
 	defer Db.Close()
 	return true, "Product Deleted Successfully Completed"
 }
+
 
 func (product *ProductStruct) GetProductById(obj *int64) (models.ProductAll, bool, string) {
 
@@ -189,10 +191,6 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.ProductAll, boo
 	}()
 	return productStruct, true, "Successfully Completed"
 }
-
-
-
-
 
 
 func (product *ProductStruct) GetProductHomePage(obj *int64) (models.Product, bool, string) {
@@ -375,9 +373,10 @@ if err != nil {
 		fmt.Println("Error in Product SearchBar QueryRow :", err)
 		return result, false
 	}
+	basicURL := "https://drive.google.com/uc?export=view&id="
+	productStruct.Image = basicURL + productStruct.Image
 	priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
 	value, status, descreption := priceRepo.PriceById(&productStruct.Price)
-
 	productStruct.Price = value
 	if !status {
 		fmt.Println("Error in Product GetbyId price ById QueryRow :", descreption)

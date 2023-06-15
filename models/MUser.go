@@ -1,7 +1,7 @@
 package models
 
 type User struct {
-	Id        int64  `json:"id,string"`
+	Id        int64  `json:"id"`
 	Name      string `json:"name"`
 	Email     string `json:"email"`
 	Mobileno  string `json:"mobileno"`
@@ -26,12 +26,11 @@ type UserPassword struct {
 type LoginUser struct {
 	Mobileno string `json:"mobileno"`
 	Password string `json:"password"`
-	
 }
 
 type UserChangePassword struct {
-	Id       int64 `json:"id"`
-	Password string `json:"password"`
+	Id          int64  `json:"id"`
+	Password    string `json:"password"`
 	NewPassword string `json:"newpassword"`
 }
 
@@ -55,6 +54,18 @@ type UserUpdateResponseModel struct {
 	Value       UserUpdate `json:"userdata"`
 	Descreption string     `json:"desc"`
 }
+type UserUpdateResponseEmailModel struct {
+	Statuscode  int64           `json:"statuscode"`
+	Status      bool            `json:"status"`
+	Value       UserverifyEmail `json:"userdata"`
+	Descreption string          `json:"desc"`
+}
+type UserUpdateMobilenoResponseModel struct {
+	Statuscode  int64              `json:"statuscode"`
+	Status      bool               `json:"status"`
+	Value       UserverifyMobileno `json:"userdata"`
+	Descreption string             `json:"desc"`
+}
 
 type UserUpdatePasswordOtp struct {
 	Statuscode  int64      `json:"statuscode"`
@@ -76,6 +87,20 @@ type Userverify struct {
 	OTP        string `json:"otp"`
 }
 
+type UserverifyEmail struct {
+	Id       int64  `json:"id"`
+	Email    string `json:"email"`
+	Mobileno string `json:"mobileno"`
+	Token    string `json:"token"`
+}
+
+type UserverifyMobileno struct {
+	Id       int64  `json:"id"`
+	Email    string `json:"email"`
+	Mobileno string `json:"mobileno"`
+	Token    string `json:"token"`
+	OTP      string `json:"otp"`
+}
 type UserverfiyOtp struct {
 	Statuscode  int64  `json:"statuscode"`
 	Status      bool   `json:"status"`

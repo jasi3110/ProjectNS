@@ -17,7 +17,8 @@ func (dashboard *Dashboard) Homepage(w http.ResponseWriter, r *http.Request){
 	// CREATING A DASHBOARD SLICE 
 	result:=[]models.Dashboard{}
 	nums := []models.ProductAll{}
-
+	 var stringarray []string
+    stringarray = append(stringarray, "https://drive.google.com/uc?export=view&id=1vWvjknVtDfZ9kkEkFSrjuJzfJsKBvOzV")
 	categoryrepo:= masterRepo.CategoryInterface(&masterRepo.CategoryStruct{})
 	value1,status1,descreption1:=categoryrepo.CategoryGetAll()
 
@@ -34,10 +35,18 @@ val:=models.Dashboard{
 }
 result=append(result, val)
 
-val12:=models.Dashboard{
+val22:=models.Dashboard{
 	Id: 2,
-	Type: "Category",
 	ViewType: 2,
+	Data: nums,
+	AdData:stringarray,
+}
+result=append(result, val22)
+
+val12:=models.Dashboard{
+	Id: 3,
+	Type: "Category",
+	ViewType: 3,
 	Data: nums,
 }
 result=append(result, val12)
@@ -48,16 +57,16 @@ result=append(result, val12)
 		fmt.Println(descreption1)
 	}
 	val1:=models.Dashboard{
-		Id: 3,
-		ViewType: 3,
+		Id: 4,
+		ViewType: 4,
 		Data: value1,
 	}
 	result=append(result, val1)
 
 	val13:=models.Dashboard{
-		Id: 4,
+		Id: 5,
 		Type: "Discount Product",
-		ViewType: 2,
+		ViewType: 3,
 		Data: nums,
 	}
 	result=append(result, val13)
@@ -68,8 +77,8 @@ result=append(result, val12)
 		fmt.Println(descreption2)
 	}
 	val2:=models.Dashboard{
-		Id: 5,
-		ViewType: 4,
+		Id: 6,
+		ViewType: 5,
 		Data: value2,
 	}
 	result=append(result, val2)
@@ -81,15 +90,15 @@ result=append(result, val12)
 	}
 
 	val14:=models.Dashboard{
-		Id: 6,
+		Id: 7,
 		Type: "Products",
-		ViewType: 2,
+		ViewType: 3,
 		Data: nums,
 	}
 	result=append(result, val14)
 	val3:=models.Dashboard{
-		Id: 7,
-		ViewType: 4,
+		Id: 8,
+		ViewType: 5,
 		Data: value3,
 	}
 	result=append(result, val3)
@@ -110,21 +119,3 @@ result=append(result, val12)
 	w.Write(resp)
 }
 
-
-func (dashboard *Dashboard) ProductImageGetAll(w http.ResponseWriter, r *http.Request) {
-
-	repo := masterRepo.ProductImageInterface(&masterRepo.ProductImageStruct{})
-	status,descreption:=repo.ProductImageGetall()
-	response := models.GetAllProductResponse{
-		Statuscode:   200,
-		Status:      status,
-		
-		Descreption: descreption,
-	}
-	resp, err := json.Marshal(response)
-	if err != nil {
-		fmt.Println("Error in Marshal ProductGetAll Request :", err)
-	}
-	w.Header().Set("Content-Type", "Application/json")
-	w.Write(resp)
-}

@@ -17,6 +17,7 @@ type UserAddressController struct {
 func (UserAddress *UserAddressController) UserAddressCreate(w http.ResponseWriter, r *http.Request) {
 	requst := models.UserAddress{}
 	err := json.NewDecoder(r.Body).Decode(&requst)
+	
 	if err != nil {
 		fmt.Println("Error in Decoding UserAddressCreate Request :", err)
 		response := models.CommanRespones{

@@ -23,12 +23,8 @@ func (price *PriceStruct) CreatePrice(obj *models.Price) (bool, string, models.P
 		fmt.Println("DB Disconnceted in Create price ")
 	}
 
-	err := Db.QueryRow(`INSERT INTO "price" (
-		productid,
-		mrp,
-		nop,
-		createdon)values($1,$2,$3,$4)RETURNING id `,
-		obj.ProductId, obj.Mrp,obj.Nop, utls.GetCurrentDate()).Scan(&obj.Id)
+	err := Db.QueryRow(`INSERT INTO "price" (productid,mrp,nop,createdon)values($1,$2,$3,$4)RETURNING id `,
+		obj.ProductId, obj.Mrp, obj.Nop, utls.GetCurrentDate()).Scan(&obj.Id)
 	if err != nil {
 		fmt.Println("Error in Createprice QueryRow:", err)
 		return false, "Failed", *obj
@@ -46,7 +42,7 @@ func (price *PriceStruct) PriceUpdate(obj *models.Price) (string, bool) {
 	}
 
 	query := `UPDATE "price" SET mrp=$2,nop=$3,productid=$4 WHERE id=$1`
-	_, err := Db.Exec(query, &obj.Id, &obj.Mrp,&obj.Nop, &obj.ProductId)
+	_, err := Db.Exec(query, &obj.Id, &obj.Mrp, &obj.Nop, &obj.ProductId)
 
 	if err != nil {
 		fmt.Println("Error in PriceUpdate QueryRow :", err)
@@ -69,7 +65,7 @@ func (price *PriceStruct) PriceByDate(obj *models.Price) (models.Price, bool, st
 		fmt.Println("Error in PriceByDate QueryRow :", err)
 		return priceStruct, false, "Failed"
 	}
-	
+
 	err = query.QueryRow(obj.ProductId, obj.Createdon).Scan(
 		&priceStruct.Id,
 		&priceStruct.ProductId,
@@ -101,10 +97,10 @@ func (price *PriceStruct) PriceById(obj *models.Price) (models.Price, bool, stri
 		fmt.Println("Error in PriceById QueryRow :", err)
 		return priceStruct, false, "Failed"
 	}
-	err = query.QueryRow(obj.Id).Scan(&priceStruct.Id, &priceStruct.ProductId, &priceStruct.Mrp,&priceStruct.Nop, &priceStruct.Createdon)
-	percentage:= 100 - ((float64(priceStruct.Nop) / float64(priceStruct.Mrp)) * 100) 
-	
-	priceStruct.Percentage=int64(percentage)
+	err = query.QueryRow(obj.Id).Scan(&priceStruct.Id, &priceStruct.ProductId, &priceStruct.Mrp, &priceStruct.Nop, &priceStruct.Createdon)
+	percentage := 100 - ((float64(priceStruct.Nop) / float64(priceStruct.Mrp)) * 100)
+
+	priceStruct.Percentage = int64(percentage)
 	if err != nil {
 		fmt.Println("Error in PriceById QueryRow Scan:", err)
 		return priceStruct, false, "Failed"
@@ -165,13 +161,9 @@ func (price *PriceStruct) PriceProductGetAll(obj *models.Price) ([]models.Price,
 	}
 
 	for query.Next() {
-		err := query.Scan(
-			&priceStruct.Id,
-			&priceStruct.ProductId,
-			&priceStruct.Mrp,
-			&priceStruct.Nop,
-			&priceStruct.Createdon,
-		)
+		err := query.Scan(&priceStruct.Id, &priceStruct.ProductId, &priceStruct.Mrp,
+			&priceStruct.Nop, &priceStruct.Createdon)
+
 		if err != nil {
 			fmt.Println("Error in Price GetAll Queryrow Scan :", err)
 			return result, false, "Failed"

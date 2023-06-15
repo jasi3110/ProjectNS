@@ -51,11 +51,3 @@ func GenerateOtp()string{
 	return otp
 	}
 
-
-
-// func main(){
-// 	// date :=utls.GetCurrentDate()
-
-// fmt.Println("",GenerateTrxNumber())
-// fmt.Println("",GenerateTrxNumber())
-// }

@@ -87,10 +87,7 @@ func (role *RoleStruct) RoleGetAll() ([]models.Role, bool, string) {
 	}
 
 	for query.Next() {
-		err := query.Scan(
-			&roleStruct.Id,
-			&roleStruct.Type,
-		)
+		err := query.Scan(&roleStruct.Id,&roleStruct.Type)
 		if err != nil {
 			fmt.Println("Error is founded :", err)
 			return result, false, "failed to  Get All Role Data"

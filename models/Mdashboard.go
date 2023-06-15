@@ -5,6 +5,7 @@ type Dashboard struct {
 	Type     string      `json:"type"`
 	ViewType int64       `json:"viewtype"`
 	Data     interface{} `json:"data"`
+	AdData    []string    `json:"addata"`
 }
 
 type CommanResponesDashboard struct {
@@ -19,7 +20,7 @@ type DashboardCart1 struct {
 	Type     string       `json:"type"`
 	ViewType int64        `json:"viewtype"`
 	Items    int64        `json:"items"`
-	Data     []ProductAllCart `json:"cartdata"`
+	Data     []ProductAll `json:"cartdata"`
 }
 
 type CommanResponesDashboardCart struct {

@@ -16,3 +16,10 @@ func Imageurl(obj string) string {
 	obj = strings.Replace(obj, "/view?usp=share_link", "", 1)
 	return obj
 }
+
+type ProductImageResponses struct {
+	Statuscode  int64    `json:"statuscode"`
+	Status      bool     `json:"status"`
+	Value       []string `json:"imagedata"`
+	Descreption string   `json:"desc"`
+}

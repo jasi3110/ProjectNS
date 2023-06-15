@@ -22,11 +22,10 @@ func (discount *DiscountStruct) CreateDiscount(obj *models.RDiscount) (bool, str
 	if !isconnceted {
 		fmt.Println("DB Disconnceted in Create Discount")
 	}
-	// txn,err:=Db.Begin()
-	// CHECKING PRODUCT IS ALREADY IN DISCOUNT PRODUCT
 	query, err := Db.Query(`SELECT productid FROM "discount" WHERE isdeleted=0`)
 	if err != nil {
 		log.Println("Error in Check product Discount Create   QueryRow :", err)
+		return false, "Failed"
 	}
 
 	userStruct := models.RDiscount{}
@@ -38,7 +37,7 @@ func (discount *DiscountStruct) CreateDiscount(obj *models.RDiscount) (bool, str
 		}
 	}
 	// TAKING PRODUCT PRICE ID VALUE IN PRODUCT GET BY ID
-	fmt.Println("in product getbyid")
+
 	productRepo := ProductInterface(&ProductStruct{})
 	productValue, productStatus, desc := productRepo.GetProductById(&obj.Id)
 	if !productStatus {
