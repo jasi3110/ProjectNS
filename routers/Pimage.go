@@ -1,16 +1,10 @@
 package routers
 
 import (
-	// "OnlineShop/controllers"
 	"OnlineShop/controllers"
 	"OnlineShop/controllers/masters"
 	"OnlineShop/utls"
-
-	// "OnlineShop/repos/masterRepo"
-
-	// "OnlineShop/utls"
 	"net/http"
-
 	"github.com/gorilla/mux"
 )
 

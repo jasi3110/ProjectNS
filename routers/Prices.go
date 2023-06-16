@@ -5,7 +5,6 @@ import (
 	"OnlineShop/controllers/masters"
 	"OnlineShop/utls"
 	"net/http"
-
 	"github.com/gorilla/mux"
 )
 
