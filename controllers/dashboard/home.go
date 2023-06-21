@@ -4,7 +4,6 @@ import (
 	"OnlineShop/models"
 	"OnlineShop/repos"
 	"OnlineShop/repos/masterRepo"
-	// "crypto/rand"bv 
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -17,8 +16,11 @@ func (dashboard *Dashboard) Homepage(w http.ResponseWriter, r *http.Request){
 	// CREATING A DASHBOARD SLICE 
 	result:=[]models.Dashboard{}
 	nums := []models.ProductAll{}
-	 var stringarray []string
-    stringarray = append(stringarray, "https://drive.google.com/uc?export=view&id=1vWvjknVtDfZ9kkEkFSrjuJzfJsKBvOzV")
+	
+	Adimagesrepo := masterRepo.AdImagesInterface(&masterRepo.AdImagesStruct{})
+	value, status0, descreption0 := Adimagesrepo.AdImageGetAll()
+
+
 	categoryrepo:= masterRepo.CategoryInterface(&masterRepo.CategoryStruct{})
 	value1,status1,descreption1:=categoryrepo.CategoryGetAll()
 
@@ -35,11 +37,14 @@ val:=models.Dashboard{
 }
 result=append(result, val)
 
+if !status0{
+	fmt.Println(descreption0)
+}
 val22:=models.Dashboard{
 	Id: 2,
 	ViewType: 2,
 	Data: nums,
-	AdData:stringarray,
+	AdData:value,
 }
 result=append(result, val22)
 

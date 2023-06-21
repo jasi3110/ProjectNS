@@ -3,149 +3,130 @@ package repos
 import (
 	"OnlineShop/models"
 	"OnlineShop/repos/masterRepo"
-
-	// "sync"
-
-	// "sync"
-
-	// "OnlineShop/repos/masterRepo"
 	"OnlineShop/utls"
-	"fmt"
 	"log"
 )
-
-// var wg sync.WaitGroup
 
 type ProductInterface interface {
 	ProductCreate(obj *models.Product) (string, bool)
 	ProductUpdate(obj *models.Product) (string, bool)
 	ProductDelete(obj *models.Product) (bool, string)
-
 	GetProductById(obj *int64) (models.ProductAll, bool, string)
 	ProductGetAll() ([]models.ProductAll, bool, string)
 	ProductSearchBar(obj string) ([]models.ProductAll, bool)
-
 	ProductGetAllByUnit(obj *int64) ([]models.ProductAll, bool, string)
 	ProductGetAllByCategory(obj *int64) ([]models.ProductAll, bool, string)
 }
+
 type ProductStruct struct {
 }
 
 func (product *ProductStruct) ProductCreate(obj *models.Product) (string, bool) {
 	Db, isConnected := utls.OpenDbConnection()
 	if !isConnected {
-		fmt.Println("DB Disconnceted in Product Create")
+		log.Panic("DB Disconnceted in Product Create")
 	}
-	
-	if obj.Image == "" {
-		obj.Image = "https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600w-1114445501.jpg"
-	}
+
 	priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
 	pricesStruct := models.Price{
 		ProductId: obj.Id,
 		Mrp:       obj.Mrp,
 		Nop:       obj.Nop,
 	}
-	status, descreption, value := priceRepo.CreatePrice(&pricesStruct)
 
+	status, _, value := priceRepo.CreatePrice(&pricesStruct)
 	if !status {
-		fmt.Println(descreption)
-		return descreption, false
+		log.Panic("Error in Create Product Price Create")
+		return "Somethong Went Wrong", false
 	}
-	err := Db.QueryRow(`INSERT into "product"(
-		image,
-		name,
-		category,
-		quantity,
-		unit,
-		price,
-		createdon
+
+	err := Db.QueryRow(`INSERT into "product"(image,name,category,quantity,unit,price,createdon
 		)values($1,$2,$3,$4,$5,$6,$7)RETURNING id`,
-		obj.Image,
-		obj.Name,
-		obj.Category,
-		obj.Quantity,
-		obj.Unit,
-		0,
+		obj.Image, obj.Name, obj.Category, obj.Quantity, obj.Unit, value.Id,
 		utls.GetCurrentDate()).Scan(&obj.Id)
-	
+
 	if err != nil {
-		fmt.Println("Error in Product Create QueryRow :", err)
+		log.Panic("Error in Product Create QueryRow :", err)
 		return "Create Product Failed", false
 	}
-	
-	_, err = Db.Query(`UPDATE "product" SET price=$2 WHERE id=$1 and isdeleted=0`, &value.ProductId, &value.Id)
 
-	if err != nil {
-		fmt.Println("Error in Price Update QueryRow :", err)
-		return "Update Failed", false
-	}
 	defer func() {
 		Db.Close()
+		if r := recover(); r != nil {
+			log.Panic("Recovered from panic condition : ", r)
+		}
 	}()
-	return "Product Created Successfully", true
-} 
 
+	return "Product Created Successfully", true
+}
 
 func (product *ProductStruct) ProductUpdate(obj *models.Product) (string, bool) {
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
-		fmt.Println("DB Disconnceted in Product Update")
+		log.Panic("DB Disconnceted in Product Update")
 	}
+
 	priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
 	pricesStruct := models.Price{
 		ProductId: obj.Id,
 		Mrp:       obj.Mrp,
 		Nop:       obj.Nop,
 	}
-	status, descreption, value := priceRepo.CreatePrice(&pricesStruct)
 
+	status, _, value := priceRepo.CreatePrice(&pricesStruct)
 	if !status {
-		fmt.Println("Error in product update price create QueryRow :", descreption)
-		return descreption, false
+		log.Panic("Error in product update price create")
+		return "Something Went Wrong", false
 	}
-	query := `UPDATE "product" SET image=$2,name=$3,category=$4,unit=$5,price=$6,quantity=$7 WHERE id=$1 and isdeleted=0`
 
+	query := `UPDATE "product" SET image=$2,name=$3,category=$4,unit=$5,price=$6,quantity=$7 WHERE id=$1 and isdeleted=0`
 	_, err := Db.Exec(query, &obj.Id, &obj.Image, &obj.Name, &obj.Category, obj.Unit, &value.Id, &obj.Quantity)
 
 	if err != nil {
-		fmt.Println("Error in Price Update QueryRow :", err)
+		log.Panic("Error in Product Update QueryRow :", err)
 		return "Update Failed", false
 	}
 
-	if err != nil {
-		fmt.Println("Error in Product Update QueryRow :", err)
-		return "Update Failed", false
-	}
 	defer func() {
 		Db.Close()
+
+		if r := recover(); r != nil {
+			log.Panic("Recovered from panic condition : ", r)
+		}
 	}()
+
 	return "Successfully Updated", true
 }
-
 
 func (product *ProductStruct) ProductDelete(obj *models.Product) (bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
-		fmt.Println("DB disconnceted in Product Delete ")
+		log.Panic("DB disconnceted in Product Delete ")
 	}
+
 	query := `UPDATE "product" SET isdeleted=1 WHERE id=$1 and isdeleted=0`
 	_, err := Db.Exec(query, &obj.Id)
 
 	if err != nil {
-		fmt.Println("Error in product Delete QueryRow :", err)
+		log.Panic("Error in product Delete QueryRow :", err)
 		return false, "Product Delete Failed"
 	}
-	defer Db.Close()
-	return true, "Product Deleted Successfully Completed"
+
+	defer func() {
+		Db.Close()
+
+		if r := recover(); r != nil {
+			log.Panic("Recovered from panic condition : ", r)
+		}
+	}()
+
+	return true, "Product Deleted Successfully"
 }
 
-
 func (product *ProductStruct) GetProductById(obj *int64) (models.ProductAll, bool, string) {
-
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
-		fmt.Println("DB Disconnected in Product GetByID")
+		log.Panic("DB Disconnected in Product GetById")
 	}
 
 	productStruct := models.ProductAll{}
@@ -162,10 +143,12 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.ProductAll, boo
 								   coalesce( (select nop from price where id = price) ) as price,
 								   createdon from "product" where id=$1 and isdeleted=0`)
 	if err != nil {
-		fmt.Println("Error in Product GetById QueryRow :", err)
-		return productStruct, false, "Failed"
+		log.Panic("Error in Product GetById QueryRow :", err)
+		return productStruct, false, "Something Went Wrong"
 	}
-	err = query.QueryRow(obj).Scan(&productStruct.Id,
+
+	err = query.QueryRow(obj).Scan(
+		&productStruct.Id,
 		&productStruct.Image,
 		&productStruct.Name,
 		&productStruct.Category.Id,
@@ -177,27 +160,30 @@ func (product *ProductStruct) GetProductById(obj *int64) (models.ProductAll, boo
 		&productStruct.Price.Mrp,
 		&productStruct.Price.Nop,
 		&productStruct.CreatedOn)
+
 	if err != nil {
-		fmt.Println("Error in Product GetById QueryRow Scan :", err)
-		return productStruct, false, "Failed"
+		log.Panic("Error in Product GetById QueryRow Scan :", err)
+		return productStruct, false, "Something Went Wrong"
 	}
+
 	basicURL := "https://drive.google.com/uc?export=view&id="
 	productStruct.Image = basicURL + productStruct.Image
-	percentage:= 100 - ( ((float64(productStruct.Price.Nop) / float64(productStruct.Price.Mrp)) * 100))
-	productStruct.Price.Percentage=int64(percentage)
+	percentage := 100 - ((float64(productStruct.Price.Nop) / float64(productStruct.Price.Mrp)) * 100)
+	productStruct.Price.Percentage = int64(percentage)
 	defer func() {
 		Db.Close()
 		query.Close()
+		if r := recover(); r != nil {
+			log.Panic("Recovered from panic condition : ", r)
+		}
 	}()
 	return productStruct, true, "Successfully Completed"
 }
 
-
 func (product *ProductStruct) GetProductHomePage(obj *int64) (models.Product, bool, string) {
-
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
-		fmt.Println("DB Disconnected in Product GetByID")
+		log.Panic("DB Disconnected in Get Product HomePage")
 	}
 
 	productStruct := models.Product{}
@@ -207,68 +193,75 @@ func (product *ProductStruct) GetProductHomePage(obj *int64) (models.Product, bo
 								   price,
 								   coalesce( (select mrp,nop from price where id = price) ) as price,
 								   createdon from "product" where id=$1 and isdeleted=0`)
+
 	if err != nil {
-		fmt.Println("Error in Product GetById QueryRow :", err)
-		return productStruct, false, "Failed"
+		log.Panic("Error in Product Get product HomePage QueryRow :", err)
+		return productStruct, false, "Something Went Wrong"
 	}
-	err = query.QueryRow(obj).Scan(&productStruct.Id,
+
+	err = query.QueryRow(obj).Scan(
+		&productStruct.Id,
 		&productStruct.Image,
 		&productStruct.Name,
 		&productStruct.Price,
 		&productStruct.CreatedOn)
-	if err != nil {
-		fmt.Println("Error in Product GetById QueryRow Scan :", err)
-		return productStruct, false, "Failed"
-	}
-	// num, err := strconv.ParseInt(productStruct.Image, 10, 64)
-	if err != nil {
-		fmt.Println("Error:", err)
-		
-	}
-	// priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
-	// value, status, descreption := priceRepo.PriceById(&productStruct.Price)
 
-	// productStruct.Price = value
-	// imagerepo:=masterRepo.ProductImageInterface(&masterRepo.ProductImageStruct{})
-	// value2,status2,descreption2:=imagerepo.ProductByImageId(&num)
-	// productStruct.Image=value2.Imageurl
-	// if !status || status2{
-	// 	fmt.Println("Error in Product GetbyId price ById QueryRow :", descreption,descreption2)
-	// 	return productStruct, false, "Failed"
-	// }
+	if err != nil {
+		log.Panic("Error in Product Get Product HomePage QueryRow Scan : ", err)
+		return productStruct, false, "Something Went Wrong"
+	}
+	
 	defer func() {
 		Db.Close()
 		query.Close()
+		
+		if r := recover(); r != nil {
+			log.Panic("Recovered from panic condition : ", r)
+		}
+
 	}()
+
 	return productStruct, true, "Successfully Completed"
 }
- 
 
 func (product *ProductStruct) ProductGetAll() ([]models.ProductAll, bool, string) {
 	Db, isConnected := utls.OpenDbConnection()
 	if !isConnected {
-		fmt.Println("DB Disconnceted in Product GetAll ")
+		log.Panic("DB Disconnceted in Product GetAll ")
 	}
+
 	result := []models.ProductAll{}
 	productStruct := models.Product{}
 
 	query, err := Db.Query(`SELECT id FROM "product" WHERE isdiscount=0 and isdeleted=0`)
 	if err != nil {
-		log.Println(err)
+		log.Panic("Error in Product GetAll QueryRow :",err)
 	}
-	// var productchannel chan models.ProductAll
+	
 	for query.Next() {
 		err := query.Scan(&productStruct.Id)
-		value, _, _ :=product.GetProductById(&productStruct.Id)
 		if err != nil {
-			fmt.Println("Error in Product GetAll QueryRow :", err)
-			return result, false, "failed to  Get All Product Data"
+			log.Panic("Error in Product GetAll QueryRow Scan :", err)
+			return result, false, "Something Went Wrong"
 		}
+
+		value, status, _ := product.GetProductById(&productStruct.Id)
+		if !status {
+			log.Panic("Error in Product GetAll GetProductById ")
+			return result, false, "Something Went Wrong"
+		}
+
 		result = append(result, value)
 	}
+
 	defer func() {
 		Db.Close()
 		query.Close()
+
+		if r := recover(); r != nil {
+			log.Panic("Recovered from panic condition : ", r)
+		}
+		
 	}()
 	return result, true, "successfully Completed"
 }
@@ -276,24 +269,30 @@ func (product *ProductStruct) ProductGetAll() ([]models.ProductAll, bool, string
 func (product *ProductStruct) ProductGetAllByCategory(obj *int64) ([]models.ProductAll, bool, string) {
 	Db, isConnected := utls.OpenDbConnection()
 	if !isConnected {
-		fmt.Println("DB Disconnceted in Product GetAllBY Category ")
+		log.Panic("DB Disconnceted in Product GetAllBY Category ")
 	}
+
 	result := []models.ProductAll{}
 	productStruct := models.Product{}
 
 	query, err := Db.Query(`SELECT id FROM "product" WHERE category=$1`, obj)
 	if err != nil {
-		fmt.Println("Error in Product GetAll By Category  QueryRow :", err)
-		return result, false, "failed"
+		log.Panic("Error in Product GetAll By Category  QueryRow :", err)
+		return result, false, "Something Went Wrong"
 	}
-	// var productchannel chan models.ProductAll
+	
 	for query.Next() {
 		err := query.Scan(&productStruct.Id)
-		value, _,_:= product.GetProductById(&productStruct.Id)
-
 		if err != nil {
-			fmt.Println("Error in Product GetAll Category QueryRow :", err)
+			log.Panic("Error in Product GetAll Category QueryRow Scan:", err)
 			return result, false, "failed"
+		}
+
+		value, status, _ := product.GetProductById(&productStruct.Id)
+
+		if !status {
+			log.Panic("Error in Product GetAll Category Getting Product  :")
+			return result, false, "Something Went Wrong"
 		}
 
 		result = append(result, value)
@@ -301,41 +300,55 @@ func (product *ProductStruct) ProductGetAllByCategory(obj *int64) ([]models.Prod
 	defer func() {
 		Db.Close()
 		query.Close()
+
+		if r := recover(); r != nil {
+			log.Panic("Recovered from panic condition : ", r)
+		}
+
 	}()
+
 	return result, true, "successfully Completed"
 }
 
 func (product *ProductStruct) ProductGetAllByUnit(obj *int64) ([]models.ProductAll, bool, string) {
 	Db, isConnected := utls.OpenDbConnection()
 	if !isConnected {
-		fmt.Println("DB Disconnceted in Product GetAllBY Unit ")
+		log.Panic("DB Disconnceted in Product GetAllBY Unit ")
 	}
+
 	result := []models.ProductAll{}
 	productStruct := models.Product{}
 
 	query, err := Db.Query(`SELECT id FROM "product" WHERE unit=$1`, obj)
 	if err != nil {
-		fmt.Println("Error in Product GetAll By Unit QueryRow :", err)
-		return result, false, "failed"
+		log.Panic("Error in Product GetAll By Unit QueryRow :", err)
+		return result, false, "Something Went Wrong"
 	}
-	// var Result chan models.ProductAll
+	
 	for query.Next() {
 		err := query.Scan(&productStruct.Id)
-		value, status, descreption := product.GetProductById(&productStruct.Id)
-
 		if err != nil {
-			fmt.Println("Error in Product GetAll By Unit  QueryRow Scan:", err)
+			log.Panic("Error in Product GetAll By Unit  QueryRow Scan:", err)
 			return result, false, "failed"
 		}
+
+		value, status, _:= product.GetProductById(&productStruct.Id)
 		if !status {
-			fmt.Println(descreption)
-			return result, false, descreption
+			log.Panic("Error in Product GetAll By Unit Getting Product")
+			return result, false, "Something Went Wrong"
 		}
+
 		result = append(result, value)
 	}
+
 	defer func() {
 		Db.Close()
 		query.Close()
+		
+		if r := recover(); r != nil {
+			log.Panic("Recovered from panic condition : ", r)
+		}
+
 	}()
 	return result, true, "successfully Completed"
 }
@@ -343,10 +356,11 @@ func (product *ProductStruct) ProductGetAllByUnit(obj *int64) ([]models.ProductA
 func (product *ProductStruct) ProductSearchBar(obj string) ([]models.ProductAll, bool) {
 	Db, isConnected := utls.OpenDbConnection()
 	if !isConnected {
-		fmt.Println("DB Disconnceted in Product SearchBar")
+		log.Panic("DB Disconnceted in Product SearchBar")
 	}
 	var result []models.ProductAll
-	productStruct:=models.ProductAll{}
+	productStruct := models.ProductAll{}
+
 	query, err := Db.Query(`SELECT id,
 	image,
 	name,
@@ -357,40 +371,52 @@ func (product *ProductStruct) ProductSearchBar(obj string) ([]models.ProductAll,
 	coalesce( (select item from unit where id = unit) ) as unit,
 	price,
 	createdon from "product" where LOWER(name) like $1`, "%"+obj+"%")
-	fmt.Println("",obj)
+	
+	if err != nil {
+		log.Panic("Error in Product SearchBar QueryRow : ", err)
+		return result, false
+	}
+
 	for query.Next() {
-	err := query.Scan(&productStruct.Id,
-		&productStruct.Image,
-		&productStruct.Name,
-		&productStruct.Category.Id,
-		&productStruct.Category.Name,
-		&productStruct.Quantity,
-		&productStruct.Unit.Id,
-		&productStruct.Unit.Item,
-		&productStruct.Price.Id,
-		&productStruct.CreatedOn)
-if err != nil {
-		fmt.Println("Error in Product SearchBar QueryRow :", err)
-		return result, false
-	}
-	basicURL := "https://drive.google.com/uc?export=view&id="
-	productStruct.Image = basicURL + productStruct.Image
-	priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
-	value, status, descreption := priceRepo.PriceById(&productStruct.Price)
-	productStruct.Price = value
-	if !status {
-		fmt.Println("Error in Product GetbyId price ById QueryRow :", descreption)
-		return result, false
-	}
-		// fmt.Println("",result)
+		err := query.Scan(&productStruct.Id,
+			&productStruct.Image,
+			&productStruct.Name,
+			&productStruct.Category.Id,
+			&productStruct.Category.Name,
+			&productStruct.Quantity,
+			&productStruct.Unit.Id,
+			&productStruct.Unit.Item,
+			&productStruct.Price.Id,
+			&productStruct.CreatedOn)
+		if err != nil {
+			log.Panic("Error in Product SearchBar QueryRow Scan:", err)
+			return result, false
+		}
+
+		basicURL := "https://drive.google.com/uc?export=view&id="
+		productStruct.Image = basicURL + productStruct.Image
+
+		priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
+		value, status, _ := priceRepo.PriceById(&productStruct.Price)
+
+		productStruct.Price = value
+
+		if !status {
+			log.Panic("Error in Product GetbyId Geeting priceById ")
+			return result, false
+		}
+
 		result = append(result, productStruct)
 	}
-	if err != nil {
-		return result, false
-	}
+	
 	defer func() {
 		Db.Close()
 		query.Close()
+
+		if r := recover(); r != nil {
+			log.Panic("Recovered from panic condition : ", r)
+		}
+
 	}()
 	return result, true
 }

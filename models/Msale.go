@@ -1,22 +1,21 @@
 package models
 
 type Invoice struct {
-	Id         int64     `json:"id"`
-	Products   []ProductAll `json:"productdata"`
-	BillAmount int64     `json:"billamount"`
-	CustomerId int64     `json:"customerid"`
-	CreatedOn  string    `json:"createdon"`
-	Items       int64     `json:"items"`
-}
-
-type InvoiceBillById struct {
 	Id         int64        `json:"id"`
 	Products   []ProductAll `json:"productdata"`
 	BillAmount int64        `json:"billamount"`
-	BillId     int64        `json:"billid"`
 	CustomerId int64        `json:"customerid"`
 	CreatedOn  string       `json:"createdon"`
-	CreatedBy  int64        `json:"createdby"`
+	Items      int64        `json:"items"`
+}
+
+type InvoiceSaleById struct {
+	Id         int64        `json:"id"`
+	Products   []ProductAll `json:"productdata"`
+	BillAmount int64        `json:"billamount"`
+	InvoiceId  int64        `json:"Invoiceid"`
+	CustomerId int64        `json:"customerid"`
+	CreatedOn  string       `json:"createdon"`
 	Items      int64        `json:"items"`
 }
 
@@ -27,21 +26,21 @@ type SaleCommanRespones struct {
 	Descreption string  `json:"desc"`
 }
 
-type GetAllSaleInvoiceResponse struct {
+type GetAllInvoiceResponse struct {
 	Statuscode  int64     `json:"statuscode"`
 	Status      bool      `json:"result"`
 	Value       []Invoice `json:"data"`
 	Descreption string    `json:"desc"`
 }
 
-type GetAllSaleInvoiceGetByBillIdResponse struct {
+type GetSaleByInvoiceIdResponse struct {
 	Statuscode  int64           `json:"statuscode"`
 	Status      bool            `json:"result"`
-	Value       InvoiceBillById `json:"data"`
+	Value       InvoiceSaleById `json:"data"`
 	Descreption string          `json:"desc"`
 }
 
-type GetUserReportByDateRange struct {
+type InvoiceByDateRange struct {
 	FromDate string `json:"fromdate"`
 	ToDate   string `json:"todate"`
 }
@@ -49,6 +48,6 @@ type GetUserReportByDateRange struct {
 type GetAllSaleInvoiceByDateRangeResponse struct {
 	Statuscode  int64             `json:"statuscode"`
 	Status      bool              `json:"result"`
-	Value       []InvoiceBillById `json:"data"`
+	Value       []InvoiceSaleById `json:"data"`
 	Descreption string            `json:"desc"`
 }

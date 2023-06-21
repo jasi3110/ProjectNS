@@ -15,5 +15,6 @@ func InitRoutes() *mux.Router {
 	route = DiscountRoutes(route)
 	route = CartRoutes(route)
 	route= DashBoardRoutes(route)
+	route=AdImagesRoutes(route)
 	return route
 }

@@ -65,7 +65,4 @@ type ProductSearchResponses struct {
 type ProductSearch struct {
 	Id   int64  `json:"id"`
 	Name string `json:"name"`
-	// Category   Category `json:"category"`
-	// Unit       Unit     `json:"unit"`
-
 }

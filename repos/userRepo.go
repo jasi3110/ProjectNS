@@ -3,7 +3,6 @@ package repos
 import (
 	"OnlineShop/models"
 	"OnlineShop/utls"
-	"fmt"
 	"log"
 )
 
@@ -24,6 +23,7 @@ type UserInterface interface {
 	UserUpdateEmail(obj *models.UserverifyUpdate) (models.UserverifyUpdate,bool, string)
 	UserverifyMobileno(obj *models.UserverifyUpdate) (bool, string)
 	UserverifyById(obj *models.Userverify) (bool, string)
+	UserSearchBar(obj string) ([]models.User, bool)
 }
 
 type UserRepo struct {
@@ -32,7 +32,7 @@ type UserRepo struct {
 func (user *UserRepo) UserCreate(obj *models.User) (string, bool) {
 	Db, isConnected := utls.OpenDbConnection()
 	if !isConnected {
-		log.Println("DB Disconnented in CreateUser Repo ")
+		log.Panic("DB Disconnented in CreateUser Repo ")
 	}
 
 	query, err := Db.Query(`SELECT email,mobileno FROM "user" WHERE isdeleted=0`)
@@ -44,7 +44,7 @@ func (user *UserRepo) UserCreate(obj *models.User) (string, bool) {
 	for query.Next() {
 		query.Scan(&userStruct.Email, &userStruct.Mobileno)
 		if obj.Mobileno == userStruct.Mobileno || obj.Email == userStruct.Email {
-			fmt.Println("This Mobile number or Email already Used ")
+			log.Panic("This Mobile number or Email already Used ")
 			return "This Mobile Number or Email already Used by Other Customer ", false
 		}
 	}
@@ -92,7 +92,7 @@ func (user *UserRepo) UserCreate(obj *models.User) (string, bool) {
 func (user *UserRepo) UserLogin(obj *models.LoginUser) (models.User, bool, string) {
 	Db, isConnected := utls.OpenDbConnection()
 	if !isConnected {
-		log.Println("DB DisConnected in UserLogin ")
+		log.Panic("DB DisConnected in UserLogin ")
 	}
 
 	userStruct := models.User{}
@@ -105,7 +105,7 @@ func (user *UserRepo) UserLogin(obj *models.LoginUser) (models.User, bool, strin
 									createdon
 									from "user" where mobileno=$1 and password=$2 and isdeleted=0`)
 	if err != nil {
-		log.Println("Error in User Login QueryRow :", err)
+		log.Panic("Error in User Login QueryRow :", err)
 
 		return userStruct, false, "Invaild Mobile Number Or Password"
 	}
@@ -140,22 +140,74 @@ func (user *UserRepo) UserLogin(obj *models.LoginUser) (models.User, bool, strin
 	return userStruct, true, "WELCOME TO NATIONAL STORE "
 }
 
+func (user *UserRepo) UserSearchBar(obj string) ([]models.User, bool) {
+	Db, isConnected := utls.OpenDbConnection()
+	if !isConnected {
+		log.Panic("DB Disconnceted in  SearchBar")
+	}
+	var result []models.User
+	userStruct := models.User{}
+
+	query,err := Db.Query(`SELECT id,
+	name,
+	email,
+	mobileno,
+	role,
+	token,
+	createdon from "user" where LOWER(name) like $1`, "%"+obj+"%")
+	
+	if err != nil {
+		log.Panic("Error in User SearchBar QueryRow : ", err)
+		return result, false
+	}
+
+	for query.Next() {
+		err :=query.Scan(
+			&userStruct.Id,
+			&userStruct.Name,
+			&userStruct.Email,
+			&userStruct.Mobileno,
+			&userStruct.Role,
+			&userStruct.Token,
+			&userStruct.CreatedOn)
+	
+		if err != nil {
+			log.Panic("Error in User SearchBar QueryRow Scan:", err)
+			return result, false
+		}
+
+	
+		result = append(result, userStruct)
+	}
+	
+	defer func() {
+		Db.Close()
+		query.Close()
+
+		if r := recover(); r != nil {
+			log.Panic("Recovered from panic condition : ", r)
+		}
+
+	}()
+	return result, true
+}
+
 func (user *UserRepo) UserUpdateEmail(obj *models.UserverifyUpdate) (models.UserverifyUpdate, bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
-		log.Println("DB disconnceted in UserUpdateEmail ")
+		log.Panic("DB disconnceted in UserUpdateEmail ")
 	}
 
 	userStruct := models.User{}
 	query, err := Db.Query(`SELECT email FROM "user" WHERE isdeleted=0`)
 	if err != nil {
 		log.Panic("Error in User User  Update TOKEN in Update Email QueryRow :", err)
-		return *obj,false, "Update Email Failed"
+		return *obj,false, "Something Went Wrong"
 	}
 	for query.Next() {
 		query.Scan(&userStruct.Email)
 		if obj.Email == userStruct.Email {
-			log.Println(" Email already Used By Other User")
+			log.Panic(" Email already Used By Other User")
 			return *obj,false, "THis Email already Used By Other Customer"
 		}
 	}
@@ -163,7 +215,7 @@ func (user *UserRepo) UserUpdateEmail(obj *models.UserverifyUpdate) (models.User
 	txn, err := Db.Begin()
 	if err != nil {
 		log.Panic("Error in DB transaction in User Update Email ", err)
-		return *obj,false, "Failed"
+		return *obj,false, "Something Went Wrong"
 	}
 
 	query1 := `UPDATE "user" SET email= $2 WHERE id = $1 and otpmobileno=$3  RETURNING mobileno`
@@ -176,7 +228,7 @@ func (user *UserRepo) UserUpdateEmail(obj *models.UserverifyUpdate) (models.User
 		}
 
 		log.Panic("Error in User Update Email QueryRow :", err)
-		return *obj, false, "Failed"
+		return *obj, false,"Something Went Wrong"
 	}
 
 	Token := utls.GenerateJwtToken(obj.Id, obj.Mobileno, obj.Email)
@@ -189,10 +241,21 @@ func (user *UserRepo) UserUpdateEmail(obj *models.UserverifyUpdate) (models.User
 		}
 
 		log.Panic("Error User Update Email in Token QueryRow :", err)
-		return *obj, false, "Failed"
+		return *obj, false, "Something Went Wrong"
 	}
 	obj.Token = Token
 	
+	err = txn.Commit()
+		log.Println("transcration commited In User Update Email")
+		if err != nil {
+			log.Panic("transcration commit Failed")
+			err := txn.Rollback()
+			if err != nil {
+				log.Panic("Error in Transcration Commit Rollback in User Update Email:", err)
+			
+			return *obj,false,"Something Went Wrong"
+		}}
+
 	defer func() {
 		Db.Close()
 		query.Close()
@@ -207,7 +270,7 @@ func (user *UserRepo) UserUpdateEmail(obj *models.UserverifyUpdate) (models.User
 func (user *UserRepo) UserUpdateName(obj *models.User) (bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
-		log.Println("DB disconnceted in User Update Name ")
+		log.Panic("DB disconnceted in User Update Name ")
 	}
 
 	query1 := `UPDATE "user" SET name = $2 WHERE id = $1 AND isdeleted=0`
@@ -215,7 +278,7 @@ func (user *UserRepo) UserUpdateName(obj *models.User) (bool, string) {
 
 	if err != nil {
 		log.Panic("Error in User Update Name QueryRow :", err)
-		return false, "Failed"
+		return false,"Something Went Wrong"
 	}
 
 	defer func() {
@@ -230,7 +293,7 @@ func (user *UserRepo) UserUpdateName(obj *models.User) (bool, string) {
 func (user *UserRepo) UserUpdateMobileno(obj *models.UserverifyUpdate) (models.UserverifyUpdate, bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
-		log.Println("DB disconnceted in UserUpdate Mobileno ")
+		log.Panic("DB disconnceted in UserUpdate Mobileno ")
 	}
 
 	userStruct := models.User{}
@@ -249,8 +312,8 @@ func (user *UserRepo) UserUpdateMobileno(obj *models.UserverifyUpdate) (models.U
 
 	txn, err := Db.Begin()
 	if err != nil {
-		log.Panic("Error in DB transaction ", err)
-		return *obj, false, "Failed"
+		log.Panic("Error in DB transaction in User Update Mobileno", err)
+		return *obj, false, "Something Went Wrong"
 	}
 
 	query1 := `UPDATE "user" SET mobileno= $2 WHERE id = $1 and otpmobileno=$3  RETURNING email`
@@ -263,11 +326,12 @@ func (user *UserRepo) UserUpdateMobileno(obj *models.UserverifyUpdate) (models.U
 		}
 
 		log.Panic("Error in User Update mobileno QueryRow :", err)
-		return *obj, false, "Failed"
+		return *obj, false, "Something Went Wrong"
 	}
 
 	Token := utls.GenerateJwtToken(obj.Id, obj.Mobileno, obj.Email)
 	_, err = txn.Exec(`UPDATE "user" SET token = $2 WHERE id=$1 and isdeleted=0`, &obj.Id, &Token)
+	
 
 	if err != nil {
 		err:= txn.Rollback()
@@ -276,17 +340,52 @@ func (user *UserRepo) UserUpdateMobileno(obj *models.UserverifyUpdate) (models.U
 		}
 
 		log.Panic("Error User Update mobileno in Token QueryRow :", err)
-		return *obj, false, "Failed"
+		return *obj, false,"Something Went Wrong"
 	}
 	obj.Token = Token
+
+	err = txn.Commit()
+		log.Println("transcration commited in User Update Mobileno")
+		if err != nil {
+			log.Panic("transcration commit Failed")
+			err := txn.Rollback()
+			if err != nil {
+				log.Panic("Error in Transcration Commit Rollback in User Update Mobileno :", err)
+			
+			return *obj,false,"Something Went Wrong"
+		}}
+
 	defer func() {
 		Db.Close()
-		txn.Commit()
 		if r := recover(); r != nil {
 			log.Panic("Recovered from panic condition : ", r)
 		}
 	}()
 	return *obj, true, "Mobile Number Updated  Successfully"
+}
+
+func (user *UserRepo) UserUpdatePassword(obj *models.UserChangePassword) (string, bool) {
+	Db, isconnceted := utls.OpenDbConnection()
+	if !isconnceted {
+		log.Panic("DB Disconnceted in User Update Password ")
+	}
+
+	query := `UPDATE "user" SET password = $2 WHERE id=$1 and isdeleted=0`
+	_, err := Db.Exec(query, &obj.Id, &obj.NewPassword)
+
+	if err != nil {
+		log.Panic("Error in User Update Password QueryRow :")
+		return "Use Other Password", false
+	}
+
+	defer func() {
+		Db.Close()
+		if r := recover(); r != nil {
+			log.Panic("Recovered from panic condition : ", r)
+		}
+	}()
+
+	return "Password Changed Successfully", true
 }
 
 func (user *UserRepo) UserDelete(obj *models.User) (bool, string) {
@@ -428,7 +527,7 @@ func (user *UserRepo) UserGetById(obj *models.User) (models.User, bool, string) 
 
 	if err != nil {
 		log.Panic("Error in User GetById QueryRow :", err)
-		return userStruct, false, "Failed"
+		return userStruct, false,"Something Went Wrong"
 	}
 	defer func() {
 		Db.Close()
@@ -523,7 +622,7 @@ func (user *UserRepo) Userverify(obj *models.Userverify) (int64, bool, string) {
 func (user *UserRepo) UserverifyById(obj *models.Userverify) (bool, string) {
 	Db, isConnected := utls.OpenDbConnection()
 	if !isConnected {
-		fmt.Println("DB Disconnented in  User verify Repo ")
+		log.Panic("DB Disconnented in  User verify Repo ")
 	}
 
 	otp := models.GenerateOtp()
@@ -531,7 +630,7 @@ func (user *UserRepo) UserverifyById(obj *models.Userverify) (bool, string) {
 
 	_, err := Db.Exec(query, &obj.Id, &otp)
 	if err != nil {
-		log.Println("Error in  User verify Update Otp QueryRow :", err)
+		log.Panic("Error in  User verify Update Otp QueryRow :", err)
 		return false, "Invaild User"
 	}
 
@@ -576,30 +675,6 @@ func (user *UserRepo) UserCheckOtp(obj *models.Userverify) (bool, string) {
 	return false, "Invaild Otp"
 }
 
-func (user *UserRepo) UserUpdatePassword(obj *models.UserChangePassword) (string, bool) {
-	Db, isconnceted := utls.OpenDbConnection()
-	if !isconnceted {
-		log.Panic("DB Disconnceted in User Update Password ")
-	}
-
-	query := `UPDATE "user" SET password = $2 WHERE id=$1 and isdeleted=0`
-	_, err := Db.Exec(query, &obj.Id, &obj.NewPassword)
-
-	if err != nil {
-		log.Panic("Error in User Update Password QueryRow :")
-		return "Use Other Password", false
-	}
-
-	defer func() {
-		Db.Close()
-		if r := recover(); r != nil {
-			log.Panic("Recovered from panic condition : ", r)
-		}
-	}()
-
-	return "User Password Changed Successfully Completed", true
-}
-
 func (user *UserRepo) UserverifyMobileno(obj *models.UserverifyUpdate) (bool, string) {
 	Db, isConnected := utls.OpenDbConnection()
 	if !isConnected {
@@ -632,8 +707,8 @@ func (user *UserRepo) UserverifyMobileno(obj *models.UserverifyUpdate) (bool, st
 		return false, "Invaild Mobile Number"
 	}
 
-	fmt.Println("Mobile Number :", obj.Mobileno)
-	fmt.Println("OTP :", otp)
+	log.Println("Mobile Number :", obj.Mobileno)
+	log.Println("OTP :", otp)
 
 	defer func() {
 		Db.Close()

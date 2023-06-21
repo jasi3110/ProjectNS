@@ -91,3 +91,20 @@ type GetAllUserAddressResponse struct {
 	Value       []UserAddress `json:"addressdata"`
 	Descreption string        `json:"desc"`
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//  AD IMAGES
+
+type AdImages struct {
+	Id        int64  `json:"id"`
+	Imageurl  string `json:"imageurl"`
+	CreatedOn string `json:"createdon"`
+}
+
+type AdImagesResponses struct {
+	Statuscode  int64    `json:"statuscode"`
+	Status      bool     `json:"status"`
+	Value       AdImages `json:"adimagesdata"`
+	Descreption string   `json:"desc"`
+}

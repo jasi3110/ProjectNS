@@ -10,7 +10,6 @@ type UserAddressInterface interface {
 	UserAddressCreate(obj *models.UserAddress) (bool, string)
 	UserAddressUpdate(obj *models.UserAddress) (models.UserAddress, string, bool)
 	UserAddressDelete(obj *models.UserAddress) (bool, string)
-
 	UserAddressGetById(obj *models.UserAddress) (models.UserAddress, bool, string)
 	UserAddressGetAll() ([]models.UserAddress, bool, string)
 	UserAddressGetAllCustomer(obj *int64) ([]models.UserAddress, bool, string)

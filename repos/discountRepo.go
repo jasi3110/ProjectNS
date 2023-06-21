@@ -4,7 +4,6 @@ import (
 	"OnlineShop/models"
 	"OnlineShop/repos/masterRepo"
 	"OnlineShop/utls"
-	"fmt"
 	"log"
 )
 
@@ -20,33 +19,37 @@ type DiscountStruct struct {
 func (discount *DiscountStruct) CreateDiscount(obj *models.RDiscount) (bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
-		fmt.Println("DB Disconnceted in Create Discount")
+		log.Panic("DB Disconnceted in Create Discount")
 	}
+
 	query, err := Db.Query(`SELECT productid FROM "discount" WHERE isdeleted=0`)
 	if err != nil {
-		log.Println("Error in Check product Discount Create   QueryRow :", err)
-		return false, "Failed"
+		log.Panic("Error in Check product Discount Create   QueryRow :", err)
+		return false, "Something Went Wrong"
 	}
 
 	userStruct := models.RDiscount{}
+
 	for query.Next() {
 		query.Scan(&userStruct.Id)
 		if obj.Id == userStruct.Id {
-			fmt.Println("This Product already in Discount")
+			log.Panic("This Product already in Discount")
 			return false, "This Product already in Discount"
 		}
 	}
-	// TAKING PRODUCT PRICE ID VALUE IN PRODUCT GET BY ID
 
+	// TAKING PRODUCT PRICE ID VALUE IN PRODUCT GET BY ID
 	productRepo := ProductInterface(&ProductStruct{})
-	productValue, productStatus, desc := productRepo.GetProductById(&obj.Id)
+	productValue, productStatus, _ := productRepo.GetProductById(&obj.Id)
+
 	if !productStatus {
-		fmt.Println(desc)
-		return false, desc
+		log.Panic("Error in Create Product Discount Getting ProductGetById")
+		return false, "Something Went Wrong"
 	}
 
 	precentagevalue := productValue.Price.Mrp * obj.Percentage / 100
 	nop := productValue.Price.Mrp - precentagevalue
+
 	priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
 	pricesStruct := models.Price{
 		ProductId: obj.Id,
@@ -54,12 +57,12 @@ func (discount *DiscountStruct) CreateDiscount(obj *models.RDiscount) (bool, str
 		Nop:       nop,
 	}
 	
-	status, descreption, priceValue := priceRepo.CreatePrice(&pricesStruct)
-
+	status, _, priceValue := priceRepo.CreatePrice(&pricesStruct)
 	if !status {
-		fmt.Println(descreption)
-		return false, "Failed"
+		log.Panic("Error ")
+		return false, "Something Went Wrong"
 	}
+
 	err = Db.QueryRow(`INSERT INTO "discount" (productid,
 											   percentage,
 											   priceid,
@@ -76,8 +79,8 @@ func (discount *DiscountStruct) CreateDiscount(obj *models.RDiscount) (bool, str
 	).Scan(&obj.Id)
 
 	if err != nil {
-		fmt.Println("rollback in insert into query")
-		fmt.Println("Error in Create Discount QueryRow :", err)
+		log.Panic("rollback in insert into query")
+		log.Panic("Error in Create Discount QueryRow :", err)
 		return false, " Create Discount Failed "
 	}
 	
@@ -85,8 +88,8 @@ func (discount *DiscountStruct) CreateDiscount(obj *models.RDiscount) (bool, str
 	productValue.Id,&priceValue.Id).Scan(&priceValue.Id)
 
 	if err != nil {
-		fmt.Println("Error in Price Update QueryRow in cREATE Discount Product  :", err)
-		return false, " Failed "
+		log.Panic("Error in Price Update QueryRow in Create  Discount Product  :", err)
+		return false, "Something Went Wrong"
 	}
 	defer func() {
 		Db.Close()
@@ -98,7 +101,7 @@ func (discount *DiscountStruct) CreateDiscount(obj *models.RDiscount) (bool, str
 func (discount *DiscountStruct) DiscountUpdate(obj *models.RDiscount) (bool, string) {
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
-		fmt.Println("DB Disconnceted in Discount Product Update")
+		log.Panic("DB Disconnceted in Discount Product Update")
 	}
 	Txn, _ := Db.Begin()
 	// TAKING PRODUCT PRICE ID VALUE IN PRODUCT GET BY ID
@@ -121,36 +124,35 @@ func (discount *DiscountStruct) DiscountUpdate(obj *models.RDiscount) (bool, str
 	if err != nil {
 		err := Txn.Rollback()
 		if err != nil {
-			fmt.Println("Error in Update Discount Rollback in Discount :", err)
+			log.Panic("Error in Update Discount Rollback in Discount :", err)
 		}
-		fmt.Println("Error in Discount Product Upadte QueryRow :", err)
+		log.Panic("Error in Discount Product Upadte QueryRow :", err)
 		return false, "Update Failed"
 	}
 	err = Txn.QueryRow(`UPDATE "product" SET price =$2 , isdiscount=1 where id=$1 RETURNING id `, productValue.Id, priceValue.Id).Scan(&obj.Id)
 	if err != nil {
 		err := Txn.Rollback()
 		if err != nil {
-			fmt.Println("Error in Update Product Rollback in Create Discount :", err)
+			log.Panic("Error in Update Product Rollback in Create Discount :", err)
 		}
-		fmt.Println("Error in Update Discount QueryRow :", err)
-		return false, " Update Discount Failed "
+		log.Panic("Error in Update Discount QueryRow :", err)
+		return false, "Something Went Wrong"
 	}
 
 	if !status {
-		fmt.Println(descreption)
+		log.Panic(descreption)
 		return false, descreption
 	}
 	err = Txn.Commit()
-		fmt.Println("transcration commited ")
 		if err != nil {
-			fmt.Println("transcration commit Failed")
+			log.Panic("transcration commit Failed")
 			err := Txn.Rollback()
 			if err != nil {
-				fmt.Println("Error in CreateSale Rollback in Product Update :", err)
+				log.Panic("Error in CreateSale Rollback in Product Update :", err)
 			}
 			return false, " Update Discount Failed "
 		}
-
+		log.Panic("transcration commited ")
 	defer func() {
 		Db.Close()
 	}()
@@ -161,7 +163,7 @@ func (discount *DiscountStruct) DiscountProductById(obj *int64) (models.ProductA
 
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
-		fmt.Println("DB Disconnected in Product GetByID")
+		log.Panic("DB Disconnected in Discount Product GetByID")
 	}
 
 	productStruct := models.ProductAll{}
@@ -176,8 +178,8 @@ func (discount *DiscountStruct) DiscountProductById(obj *int64) (models.ProductA
 								   price,
 								   createdon from "product" where id=$1 and isdeleted=0 and isdiscount=1`)
 	if err != nil {
-		fmt.Println("Error in Product GetById QueryRow :", err)
-		return productStruct, false, "Failed"
+		log.Panic("Error in Product GetById QueryRow :", err)
+		return productStruct, false, "Something Went Wrong"
 	}
 	err = query.QueryRow(obj).Scan(&productStruct.Id,
 		&productStruct.Image,
@@ -190,15 +192,15 @@ func (discount *DiscountStruct) DiscountProductById(obj *int64) (models.ProductA
 		&productStruct.Price.Id,
 		&productStruct.CreatedOn)
 	if err != nil {
-		fmt.Println("Error in Product GetById QueryRow Scan :", err)
-		return productStruct, false, "Failed"
+		log.Panic("Error in Discount Product GetById QueryRow Scan :", err)
+		return productStruct, false, "Something Went Wrong"
 	}
 	priceRepo := masterRepo.PriceInterface(&masterRepo.PriceStruct{})
 	value, status, descreption := priceRepo.PriceById(&productStruct.Price)
 
 	productStruct.Price = value
 	if !status {
-		fmt.Println("Error in Product GetbyId price ById QueryRow :", descreption)
+		log.Panic("Error in Discount Product GetbyId price ById QueryRow :", descreption)
 		return productStruct, false, descreption
 	}
 	defer func() {
@@ -211,27 +213,27 @@ func (discount *DiscountStruct) DiscountProductById(obj *int64) (models.ProductA
 func (discount *DiscountStruct) DiscountGetAll() ([]models.ProductAll, bool, string) {
 	Db, isConnected := utls.CreateDbConnection()
 	if !isConnected {
-		fmt.Println("DB Disconnceted in Discount Product  GetAll")
+		log.Panic("DB Disconnceted in Discount Product  GetAll")
 	}
 	result := []models.ProductAll{}
 	discountStruct := models.DiscountProductAll{}
 
 	query, err := Db.Query(`SELECT productid FROM "discount"`)
 	if err != nil {
-		fmt.Println("Error in Discount Product  GetAll QueryRow :", err)
-		return result, false, "failed"
+		log.Panic("Error in Discount Product  GetAll QueryRow :", err)
+		return result, false, "Something Went Wrong"
 	}
 
 	for query.Next() {
 		err := query.Scan(&discountStruct.Id)
 		if err != nil {
-			fmt.Println("Error in Discount Product  GetAll QueryRow Scan :", err)
-			return result, false, "failed"
+			log.Panic("Error in Discount Product  GetAll QueryRow Scan :", err)
+			return result, false, "Something Went Wrong"
 		}
 		// var productchannel chan models.ProductAll
 		productRepo := ProductInterface(&ProductStruct{})
 		value, _, _ := productRepo.GetProductById(&discountStruct.Id)
-		// fmt.Println(value,status)
+		// log.Panic(value,status)
 		result = append(result, value)
 	}
 	defer func() {
