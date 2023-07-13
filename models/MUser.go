@@ -9,6 +9,7 @@ type User struct {
 	Password  string `json:"password"`
 	CreatedOn string `json:"createdon"`
 	Token     string `json:"token"`
+	Isdeleted int64   `json:"isdeleted"`
 }
 
 type UserUpdate struct {

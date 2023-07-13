@@ -242,3 +242,4 @@ func (discount *DiscountStruct) DiscountGetAll() ([]models.ProductAll, bool, str
 	}()
 	return result, true, "sucessfully Completed"
 }
+

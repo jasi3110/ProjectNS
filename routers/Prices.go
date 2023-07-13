@@ -16,7 +16,7 @@ func PricesRoutes(Router *mux.Router) *mux.Router {
 	Router.Handle("/Price/getbydate", http.HandlerFunc(priceController.PriceGetByDate)).Methods(http.MethodPost)
 	Router.Handle("/Price/priceproductgetall", http.HandlerFunc(priceController.PriceProductGetAll)).Methods(http.MethodPost)
 	Router.Handle("/Price/getall", http.HandlerFunc(priceController.PriceGetAll)).Methods(http.MethodGet)
-	Router.Handle("/Price/update", utls.Authorize(controllers.CheckAuthenticLogin(http.HandlerFunc(priceController.PriceUpdate)))).Methods(http.MethodPost)
+	Router.Handle("/Price/update", http.HandlerFunc(priceController.PriceUpdate)).Methods(http.MethodPost)
 
 	return Router
 }

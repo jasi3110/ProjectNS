@@ -49,7 +49,7 @@ func (cart *CartController) CartCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cart *CartController) CartUpdate(w http.ResponseWriter, r *http.Request) {
-	request := models.RCart{}
+	request := models.GetCart{}
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		fmt.Println("Error in Decoding CartUpdate Request :", err)

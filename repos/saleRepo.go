@@ -34,9 +34,9 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 	}
 
 	//write invoice
-	err = Txn.QueryRow(`INSERT into "invoice"(billamount,customerid,createdon,items)values($1,$2,$3,$4)RETURNING id`,
+	err = Txn.QueryRow(`INSERT into "invoice"(billamount,userid,createdon,items)values($1,$2,$3,$4)RETURNING id`,
 		obj.BillAmount,
-		obj.CustomerId,
+		obj.UserId,
 		utls.GetCurrentDate(),
 		obj.Items,
 	).Scan(&obj.Id)
@@ -56,9 +56,9 @@ func (sale *SaleStruct) CreateSale(obj *models.Invoice) (bool, string, models.In
 	id := 0
 	for _, productItem := range obj.Products {
 
-		err := Txn.QueryRow(`INSERT into "saleentry"(customerid,invoiceid,productid,productprice,quantity,
+		err := Txn.QueryRow(`INSERT into "saleentry"(userid,invoiceid,productid,productprice,quantity,
 			createdon,isdeleted)values($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
-			obj.CustomerId,
+			obj.UserId,
 			obj.Id,
 			productItem.Id,
 			productItem.Price.Id,
@@ -145,7 +145,7 @@ func (sale *SaleStruct) InvoiceGetall() ([]models.Invoice, bool, string) {
 	invoiceStruct := models.Invoice{}
 	result := []models.Invoice{}
 
-	query, err := Db.Query(`SELECT id,billamount,customerid,createdon,createdby FROM "invoice" where isdeleted=1`)
+	query, err := Db.Query(`SELECT id,billamount,userid,createdon,createdby FROM "invoice" where isdeleted=1`)
 	if err != nil {
 		log.Println("Error in Invoice GetAll Query : ", err)
 	}
@@ -154,7 +154,7 @@ func (sale *SaleStruct) InvoiceGetall() ([]models.Invoice, bool, string) {
 		err := query.Scan(
 			&invoiceStruct.Id,
 			&invoiceStruct.BillAmount,
-			&invoiceStruct.CustomerId,
+			&invoiceStruct.UserId,
 			&invoiceStruct.CreatedOn,
 		)
 		if err != nil {
@@ -182,7 +182,7 @@ func (sale *SaleStruct) InvoiceGetallByUserid(obj *int64) ([]models.Invoice, boo
 	invoiceStruct := models.Invoice{}
 	result := []models.Invoice{}
 
-	query, err := Db.Query(`SELECT id,billamount,customerid,createdon,items FROM "invoice" WHERE customerid=$1  and isdeleted=0`, obj)
+	query, err := Db.Query(`SELECT id,billamount,userid,createdon,items FROM "invoice" WHERE customerid=$1  and isdeleted=0`, obj)
 	if err != nil {
 		log.Panic("Error in Invoice GetAll By Customerid QueryRow : ", err)
 		return result, false,"Something Went Wrong"
@@ -191,7 +191,7 @@ func (sale *SaleStruct) InvoiceGetallByUserid(obj *int64) ([]models.Invoice, boo
 		err = query.Scan(
 			&invoiceStruct.Id,
 			&invoiceStruct.BillAmount,
-			&invoiceStruct.CustomerId,
+			&invoiceStruct.UserId,
 			&invoiceStruct.CreatedOn,
 			&invoiceStruct.Items,
 		)
@@ -220,7 +220,7 @@ func (sale *SaleStruct) GetSaleByInvoiceid(obj *int64) (models.InvoiceSaleById, 
 	result := models.InvoiceSaleById{}
 	productStruct := models.ProductAll{}
 
-	query, err := Db.Query(`SELECT   id,customerid,invoiceid,productid,productprice,quantity,createdon
+	query, err := Db.Query(`SELECT   id,userid,invoiceid,productid,productprice,quantity,createdon
 	FROM "saleentry" WHERE invoiceid=$1 and isdeleted=0`, obj)
 
 	if err != nil {
@@ -230,7 +230,7 @@ func (sale *SaleStruct) GetSaleByInvoiceid(obj *int64) (models.InvoiceSaleById, 
 
 	for query.Next() {
 		err := query.Scan(&result.Id,
-			&result.CustomerId,
+			&result.UserId,
 			&result.InvoiceId,
 			&productStruct.Id,
 			&productStruct.Price.Id,
@@ -282,7 +282,7 @@ func (sale *SaleStruct) InvoiceByDateRange(obj *models.InvoiceByDateRange) ([]mo
 	result := []models.InvoiceSaleById{}
 	invoiceStruct := models.InvoiceSaleById{}
 
-	query, err := Db.Query(`SELECT id,billamount,customerid,createdon,items
+	query, err := Db.Query(`SELECT id,billamount,userid,createdon,items
 							FROM "invoice" where createdon between $1 and $2`, obj.FromDate, obj.ToDate)
 	if err != nil {
 		log.Panic("Error in QueryRow of  InvoiceByDateRange :", err)
@@ -293,7 +293,7 @@ func (sale *SaleStruct) InvoiceByDateRange(obj *models.InvoiceByDateRange) ([]mo
 		err = query.Scan(
 			&invoiceStruct.Id,
 			&invoiceStruct.BillAmount,
-			&invoiceStruct.CustomerId,
+			&invoiceStruct.UserId,
 			&invoiceStruct.CreatedOn,
 			&invoiceStruct.Items,
 		)

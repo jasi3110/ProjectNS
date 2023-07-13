@@ -210,11 +210,11 @@ func (product *ProductStruct) GetProductHomePage(obj *int64) (models.Product, bo
 		log.Panic("Error in Product Get Product HomePage QueryRow Scan : ", err)
 		return productStruct, false, "Something Went Wrong"
 	}
-	
+
 	defer func() {
 		Db.Close()
 		query.Close()
-		
+
 		if r := recover(); r != nil {
 			log.Panic("Recovered from panic condition : ", r)
 		}
@@ -235,9 +235,9 @@ func (product *ProductStruct) ProductGetAll() ([]models.ProductAll, bool, string
 
 	query, err := Db.Query(`SELECT id FROM "product" WHERE isdiscount=0 and isdeleted=0`)
 	if err != nil {
-		log.Panic("Error in Product GetAll QueryRow :",err)
+		log.Panic("Error in Product GetAll QueryRow :", err)
 	}
-	
+
 	for query.Next() {
 		err := query.Scan(&productStruct.Id)
 		if err != nil {
@@ -261,7 +261,7 @@ func (product *ProductStruct) ProductGetAll() ([]models.ProductAll, bool, string
 		if r := recover(); r != nil {
 			log.Panic("Recovered from panic condition : ", r)
 		}
-		
+
 	}()
 	return result, true, "successfully Completed"
 }
@@ -280,7 +280,7 @@ func (product *ProductStruct) ProductGetAllByCategory(obj *int64) ([]models.Prod
 		log.Panic("Error in Product GetAll By Category  QueryRow :", err)
 		return result, false, "Something Went Wrong"
 	}
-	
+
 	for query.Next() {
 		err := query.Scan(&productStruct.Id)
 		if err != nil {
@@ -324,7 +324,7 @@ func (product *ProductStruct) ProductGetAllByUnit(obj *int64) ([]models.ProductA
 		log.Panic("Error in Product GetAll By Unit QueryRow :", err)
 		return result, false, "Something Went Wrong"
 	}
-	
+
 	for query.Next() {
 		err := query.Scan(&productStruct.Id)
 		if err != nil {
@@ -332,7 +332,7 @@ func (product *ProductStruct) ProductGetAllByUnit(obj *int64) ([]models.ProductA
 			return result, false, "failed"
 		}
 
-		value, status, _:= product.GetProductById(&productStruct.Id)
+		value, status, _ := product.GetProductById(&productStruct.Id)
 		if !status {
 			log.Panic("Error in Product GetAll By Unit Getting Product")
 			return result, false, "Something Went Wrong"
@@ -344,7 +344,7 @@ func (product *ProductStruct) ProductGetAllByUnit(obj *int64) ([]models.ProductA
 	defer func() {
 		Db.Close()
 		query.Close()
-		
+
 		if r := recover(); r != nil {
 			log.Panic("Recovered from panic condition : ", r)
 		}
@@ -371,7 +371,7 @@ func (product *ProductStruct) ProductSearchBar(obj string) ([]models.ProductAll,
 	coalesce( (select item from unit where id = unit) ) as unit,
 	price,
 	createdon from "product" where LOWER(name) like $1`, "%"+obj+"%")
-	
+
 	if err != nil {
 		log.Panic("Error in Product SearchBar QueryRow : ", err)
 		return result, false
@@ -408,7 +408,7 @@ func (product *ProductStruct) ProductSearchBar(obj string) ([]models.ProductAll,
 
 		result = append(result, productStruct)
 	}
-	
+
 	defer func() {
 		Db.Close()
 		query.Close()
@@ -419,4 +419,64 @@ func (product *ProductStruct) ProductSearchBar(obj string) ([]models.ProductAll,
 
 	}()
 	return result, true
+}
+
+func (product *ProductStruct) GetProductLimit10() ([]models.ProductAll, bool, string) {
+	Db, isconnceted := utls.OpenDbConnection()
+	if !isconnceted {
+		log.Panic("DB Disconnected in Product GetById")
+	}
+
+	productStruct := models.ProductAll{}
+	result := []models.ProductAll{}
+	query, err := Db.Query(`SELECT id,
+								   image,
+								   name,
+								   category,
+								   coalesce( (select name from category where id = category) ) as category,
+								   quantity,
+								   unit,
+								   coalesce( (select item from unit where id = unit) ) as unit,
+								   price,
+								   coalesce( (select mrp from price where id = price) ) as price,
+								   coalesce( (select nop from price where id = price) ) as price,
+								   createdon FROM "product" ORDER BY RANDOM() LIMIT 10 WHERE isdiscount=0 and isdeleted=0`)
+	if err != nil {
+		log.Panic("Error in Get Product Limit 10 QueryRow :", err)
+		return result, false, "Something Went Wrong"
+	}
+	for query.Next() {
+		err = query.Scan(
+			&productStruct.Id,
+			&productStruct.Image,
+			&productStruct.Name,
+			&productStruct.Category.Id,
+			&productStruct.Category.Name,
+			&productStruct.Quantity,
+			&productStruct.Unit.Id,
+			&productStruct.Unit.Item,
+			&productStruct.Price.Id,
+			&productStruct.Price.Mrp,
+			&productStruct.Price.Nop,
+			&productStruct.CreatedOn)
+
+		if err != nil {
+			log.Panic("Error in Get Product Limit 10 QueryRow Scan :", err)
+			return result, false, "Something Went Wrong"
+		}
+
+		basicURL := "https://drive.google.com/uc?export=view&id="
+		productStruct.Image = basicURL + productStruct.Image
+		percentage := 100 - ((float64(productStruct.Price.Nop) / float64(productStruct.Price.Mrp)) * 100)
+		productStruct.Price.Percentage = int64(percentage)
+		result = append(result, productStruct)
+	}
+	defer func() {
+		Db.Close()
+		query.Close()
+		if r := recover(); r != nil {
+			log.Panic("Recovered from panic condition : ", r)
+		}
+	}()
+	return result, true, "Successfully Completed"
 }

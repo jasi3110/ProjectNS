@@ -4,12 +4,11 @@ import (
 	"OnlineShop/models"
 	"OnlineShop/utls"
 	"fmt"
-	// "strconv"
 )
 
 type CartInterface interface {
 	Createcart(obj *models.RCart) (bool, string)
-	CartUpdate(obj *models.RCart) (string, bool)
+	CartUpdate(obj *models.GetCart) (string, bool)
 	CartGetAll(obj *int64) (models.GetAllCart, bool, string)
 
 	CartProductDelete(obj *models.RCart) (bool, string)
@@ -53,19 +52,21 @@ func (cart *CartStruct) Createcart(obj *models.RCart) (bool, string) {
 	return true, " Create cart sucessfully "
 }
 
-func (cart *CartStruct) CartUpdate(obj *models.RCart) (string, bool) {
+func (cart *CartStruct) CartUpdate(obj *models.GetCart) (string, bool) {
 	Db, isconnceted := utls.OpenDbConnection()
 	if !isconnceted {
 		fmt.Println("DB Disconnceted in cart Update")
 	}
 	fmt.Println("", obj)
+	for _, product := range obj.Products {
 	query := `UPDATE "cart" SET quantity=$3 WHERE productid=$2 AND customerid=$1`
-	_, err := Db.Exec(query, &obj.Id, &obj.Productid, &obj.Quantity)
+	_, err := Db.Exec(query, &obj.Customerid,&product.Productid,&product.Quantity)
 
 	if err != nil {
 		fmt.Println("Error in cart Update QueryRow :", err)
 		return "Update Failed", false
 	}
+}
 	defer func() {
 
 		Db.Close()
@@ -124,6 +125,7 @@ func (cart *CartStruct) CartProductDelete(obj *models.RCart) (bool, string) {
 	if !isconnceted {
 		fmt.Println("DB disconnceted in Cart Product Delete ")
 	}
+	fmt.Println("details :",obj)
 	query, err := Db.Query("DELETE FROM cart  WHERE customerid=$1 and productid=$2 ", &obj.Id, &obj.Productid)
 
 	for query.Next() {

@@ -6,6 +6,7 @@ import (
 	// "strconv"
 	// "fmt"
 	"fmt"
+	"math/rand"
 	"strings"
 	"time"
 	"unicode"
@@ -45,9 +46,9 @@ return res >=8
 }
 
 
-func GenerateOtp()string{
-	genotp := fmt.Sprint(time.Now().Nanosecond())
-	otp:=genotp[0:4]
-	return otp
-	}
+func GenerateOtp() string {
+	rand.Seed(time.Now().UnixNano())
+	otp := rand.Intn(999999)
+	return fmt.Sprintf("%06d", otp)
+}
 

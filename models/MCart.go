@@ -3,6 +3,13 @@ package models
 type Cart struct {
 	Product ProductAll `json:"productdata"`
 }
+type GetCart struct {
+	Customerid string `json:"customerid"`
+	Products   []struct {
+		Productid int64 `json:"productid"`
+		Quantity  string `json:"quantity"`
+	}
+}
 
 type RCart struct {
 	Id        int64  `json:"id"`
@@ -30,8 +37,9 @@ type CartProductAll struct {
 	Unit         Unit     `json:"unit"`
 	Percentage   int64    `json:"percentage"`
 	Price        Price    `json:"price"`
-	TotalMrp     string   `json:"totalmrp"`
-	Totalnop     string   `json:"totalnop"`
+	TPMrp        float64  `json:"tpmrp"`
+	TPnop        float64  `json:"tpnop"`
+	Tpqty        string   `json:"tpqty"`
 	CreatedOn    string   `json:"createdon"`
 }
 type CartRespones struct {

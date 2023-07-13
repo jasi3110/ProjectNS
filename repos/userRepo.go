@@ -218,7 +218,7 @@ func (user *UserRepo) UserUpdateEmail(obj *models.UserverifyUpdate) (models.User
 		return *obj,false, "Something Went Wrong"
 	}
 
-	query1 := `UPDATE "user" SET email= $2 WHERE id = $1 and otpmobileno=$3  RETURNING mobileno`
+	query1 := `UPDATE "user" SET email= $2 WHERE id = $1 and otpemail=$3  RETURNING mobileno`
 
 	err = txn.QueryRow(query1, &obj.Id, &obj.Email, &obj.OTP).Scan(&obj.Mobileno)
 	if err != nil {
@@ -361,7 +361,7 @@ func (user *UserRepo) UserUpdateMobileno(obj *models.UserverifyUpdate) (models.U
 			log.Panic("Recovered from panic condition : ", r)
 		}
 	}()
-	return *obj, true, "Mobile Number Updated  Successfully"
+	return *obj , true , " Mobile Number Updated  Successfully "
 }
 
 func (user *UserRepo) UserUpdatePassword(obj *models.UserChangePassword) (string, bool) {
@@ -475,7 +475,7 @@ func (user *UserRepo) UserGetall() ([]models.User, bool) {
 	userStruct := models.User{}
 	result := []models.User{}
 
-	query, err := Db.Query(`SELECT id,name,email,mobileno,role,createdon FROM "user" WHERE isdeleted=0`)
+	query, err := Db.Query(`SELECT id,name,email,mobileno,role,createdon,isdeleted FROM "user"`)
 	if err != nil {
 		log.Panic("Error in User GetAll QueryRow :", err)
 	}
@@ -488,6 +488,7 @@ func (user *UserRepo) UserGetall() ([]models.User, bool) {
 			&userStruct.Mobileno,
 			&userStruct.Role,
 			&userStruct.CreatedOn,
+			&userStruct.Isdeleted,
 		)
 
 		if err != nil {
@@ -581,7 +582,7 @@ func (user *UserRepo) Userverify(obj *models.Userverify) (int64, bool, string) {
 		log.Panic("DB Disconnented in  User verify Repo ")
 	}
 
-	query, err := Db.Query(`SELECT id,mobileno,email FROM "user" WHERE isdeleted=0`)
+	query, err := Db.Query(`SELECT id,name,mobileno,email FROM "user" WHERE isdeleted=0`)
 	if err != nil {
 		log.Panic("Error in  User verify QueryRow :", err)
 	}
@@ -590,7 +591,7 @@ func (user *UserRepo) Userverify(obj *models.Userverify) (int64, bool, string) {
 	otp := models.GenerateOtp()
 
 	for query.Next() {
-		query.Scan(&userStruct.Id, &userStruct.Mobileno, &userStruct.Email)
+		query.Scan(&userStruct.Id,&userStruct.Name, &userStruct.Mobileno, &userStruct.Email)
 
 		if obj.VerifyUser == userStruct.Mobileno || obj.VerifyUser == userStruct.Email {
 			obj.OTP = otp
@@ -602,7 +603,9 @@ func (user *UserRepo) Userverify(obj *models.Userverify) (int64, bool, string) {
 				log.Panic("Error in  User verify Update Otp QueryRow :", err)
 				return 0, false, "Invaild User"
 			}
-
+			
+			
+			utls.MobilenoOTP(userStruct.Mobileno,userStruct.Name,otp)
 			log.Println(" userVerify DETAILS :", obj.VerifyUser)
 			log.Println("OTP :", obj.OTP)
 

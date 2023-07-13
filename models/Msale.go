@@ -4,7 +4,7 @@ type Invoice struct {
 	Id         int64        `json:"id"`
 	Products   []ProductAll `json:"productdata"`
 	BillAmount int64        `json:"billamount"`
-	CustomerId int64        `json:"customerid"`
+	UserId     int64        `json:"userid"`
 	CreatedOn  string       `json:"createdon"`
 	Items      int64        `json:"items"`
 }
@@ -14,7 +14,7 @@ type InvoiceSaleById struct {
 	Products   []ProductAll `json:"productdata"`
 	BillAmount int64        `json:"billamount"`
 	InvoiceId  int64        `json:"Invoiceid"`
-	CustomerId int64        `json:"customerid"`
+	UserId     int64        `json:"userid"`
 	CreatedOn  string       `json:"createdon"`
 	Items      int64        `json:"items"`
 }
